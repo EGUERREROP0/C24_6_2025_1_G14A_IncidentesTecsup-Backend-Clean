@@ -1,0 +1,9 @@
+.env
+
+node_mudules/
+/postgres
+dist/
+build/
+coverage/
+
+
