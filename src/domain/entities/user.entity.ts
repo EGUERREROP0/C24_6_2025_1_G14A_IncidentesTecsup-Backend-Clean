@@ -1,4 +1,5 @@
 import { CustomError } from "../error";
+import { RoleEntity } from "./rele.entity";
 
 export class UserEntity {
   private constructor(
@@ -11,7 +12,7 @@ export class UserEntity {
     public readonly role_id?: number,
     public readonly email_validated?: boolean,
     public readonly profile_picture?: string,
-    public readonly user_role?: string
+    public readonly user_role?: string //RoleEntity
   ) {}
 
   static fromObject(object: { [key: string]: any }) {
@@ -47,7 +48,7 @@ export class UserEntity {
       role_id,
       email_validated,
       profile_picture,
-      user_role
+      user_role //? RoleEntity.fromObject(role_id) : undefined
     );
   }
 }

@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import fileUpload from "express-fileupload";
 import cors from "cors";
 import path from "path";
 
@@ -27,6 +28,13 @@ export class Server {
     this.app.use(express.json()); //Permitir extencion row
     this.app.use(express.urlencoded({ extended: true })); //x-www-form -urencoded
 
+    this.app.use(
+      fileUpload({
+        useTempFiles: false,
+        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB máx
+        abortOnLimit: true,
+      })
+    );
     this.app.use(cors()); //Prevent block of cors
 
     //* Public Folders

@@ -8,7 +8,7 @@ export class RegisterUserDto {
     public readonly password: string
   ) {}
 
-  static create(object: { [key: string]: any }): [string?, RegisterUserDto?] {
+  static creare(object: { [key: string]: any }): [string?, RegisterUserDto?] {
     const { first_name, last_name, email, password } = object;
 
     /*if (

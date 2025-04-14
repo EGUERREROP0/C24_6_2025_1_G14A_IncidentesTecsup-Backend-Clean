@@ -18,6 +18,7 @@ export class AuthRoutes {
 
     //Validate token with Email
     router.get("/validate-email/:token", authController.ValidateEmail);
+
     return router;
   }
 }

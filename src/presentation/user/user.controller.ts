@@ -1,0 +1,66 @@
+import { Request, Response } from "express";
+import { UserService } from "./user.service";
+import { CustomError } from "../../domain/error";
+import { PaginationDto } from "../../domain";
+
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  //*Mapear Error
+  private handleError = (error: unknown, res: Response) => {
+    if (error instanceof CustomError) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
+
+    console.log(`${error}`);
+    return res.status(500).json({ error: "Internal server Error" });
+  };
+
+  getAllUsers = (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const [error, paginationDto] = PaginationDto.create(+page, +limit);
+
+    if (error) return res.status(400).json({ error });
+    if (search && typeof search !== "string")
+      return res.status(400).json({ error: "El search debe ser un string" });
+
+    this.userService
+      .getAllUsers(paginationDto!, search as string)
+      .then((users) => {
+        return res.status(200).json(users);
+      })
+      .catch((error) => {
+        this.handleError(error, res);
+      });
+  };
+
+  //!*Get user by id
+  getUserById = (req: Request, res: Response) => {
+    const id = +req.params.id;
+    if (isNaN(id))
+      return res
+        .status(400)
+        .json({ error: `El id: ${id} ingresado no es un numero` });
+
+    this.userService
+      .getUserById(id)
+      .then((user) => res.status(200).json(user))
+      .catch((error) => this.handleError(error, res));
+  };
+
+  //!*Delete user by id
+  deleteUserById = (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (isNaN(id))
+      return res.status(400).json({ error: "El ID debe ser un numero" });
+
+    this.userService
+      .deleteUserById(id)
+      .then((user) => {
+        return res.status(200).json(user);
+      })
+      .catch((error) => {
+        this.handleError(error, res);
+      });
+  };
+}

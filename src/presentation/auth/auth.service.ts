@@ -1,4 +1,3 @@
-import { Response } from "express";
 import { UserModel } from "../../data/postgres/prisma";
 import { RegisterUserDto, UserEntity, LoginUserDto } from "../../domain";
 import { CustomError } from "../../domain/error";
@@ -27,14 +26,18 @@ export class AuthService {
           user_role: true, //  Esto te trae el nombre del rol para incluirlo en la respuesta
         },
       });
-      console.log({ user });
+      // console.log({ user });
 
       //JWT --> Mantener autenticazion
 
       //Use Our Entity
       const { password, ...userEntity } = UserEntity.fromObject(user);
 
-      return { user: userEntity, token: "ABC" };
+      const token = await Jwt.generateToken({ id: user.id });
+      if (!token) throw CustomError.internalServer("Error el el servidor");
+      console.log({ user: userEntity, token: token });
+
+      return { user: userEntity, token: token };
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -60,6 +63,7 @@ export class AuthService {
 
       //Generar token
       const token = await Jwt.generateToken({ id: user.id });
+
       if (!token) throw CustomError.internalServer("Error en el servidor");
 
       return { user: userEntity, token: token };

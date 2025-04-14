@@ -14,4 +14,9 @@ export const envs = {
 
   //jwt_token
   JWT_SEED: env.get("JWT_SEED").required().asString(),
+
+  //CONFIG CLOUDINARY
+  CLOUDINARY_CLOUD_NAME: env.get("CLOUDINARY_CLOUD_NAME").required().asString(),
+  CLOUDINARY_API_KEY: env.get("CLOUDINARY_API_KEY").required().asString(),
+  CLOUDINARY_API_SECRET: env.get("CLOUDINARY_API_SECRET").required().asString(),
 };

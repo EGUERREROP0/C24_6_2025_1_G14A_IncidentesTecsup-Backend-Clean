@@ -1,6 +1,6 @@
 .env
 
-node_mudules/
+node_modules/
 /postgres
 dist/
 build/
