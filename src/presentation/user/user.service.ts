@@ -40,7 +40,6 @@ export class UserService {
           //  ]
         }
       : {};
-    console.log(where);
     try {
       const [total, users] = await Promise.all([
         UserModel.count({ where }),
