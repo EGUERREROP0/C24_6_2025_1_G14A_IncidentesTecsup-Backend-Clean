@@ -7,10 +7,12 @@ export class AppRoutes {
   public static get routes(): Router {
     const router = Router();
 
+    const prefix = process.env.API_PREFIX || "/api/v1";
+
     //Use all routes
-    router.use("/api/v1/auth", AuthRoutes.routes);
-    router.use("/api/v1/incident", IncidentRoutes.routes);
-    router.use("/api/v1/user", UserRoutes.routes);
+    router.use(`${prefix}/auth`, AuthRoutes.routes);
+    router.use(`${prefix}/incident`, IncidentRoutes.routes);
+    router.use(`${prefix}/user`, UserRoutes.routes);
 
     return router;
   }

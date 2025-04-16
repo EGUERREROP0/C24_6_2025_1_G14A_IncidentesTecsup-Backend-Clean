@@ -10,38 +10,24 @@ export class IncidentRoutes {
   public static get routes(): Router {
     const router = Router();
 
-    const incidentService = new IncidentService();
     const cloudinaryService = new CloudinaryService();
+    const incidentService = new IncidentService(cloudinaryService);
     const incidenteController = new IncidentController(
       incidentService,
       cloudinaryService
     );
 
-    router.post(
-      "/",
-      [AuthMiddleware.validateJWT],
-      incidenteController.createIncident
-    );
-    router.get(
-      "/",
-      [AuthMiddleware.validateJWT],
-      incidenteController.getAllIncidents
-    );
+    router.use(AuthMiddleware.validateJWT);
 
-    router.get(
-      "/user",
-      [AuthMiddleware.validateJWT],
-      incidenteController.getIncidentsByUser
-    );
+    router.post("/", incidenteController.createIncident);
+    router.get("/", incidenteController.getAllIncidents);
+
+    router.get("/user", incidenteController.getIncidentsByUser);
 
     //TODO: Implementar
     router.get("/:id");
     router.put("/:id");
-    router.delete(
-      "/:id",
-      [AuthMiddleware.validateJWT],
-      incidenteController.deleteIncident
-    );
+    router.delete("/:id", incidenteController.deleteIncident);
 
     router.get("/location/:id");
 

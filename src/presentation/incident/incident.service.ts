@@ -1,18 +1,25 @@
 import { IncidentModel, LocationModel } from "../../data/postgres/prisma";
 import { CreateincidentDto, PaginationDto, UserEntity } from "../../domain";
+import { IncidentEntity } from "../../domain/entities/incident.entity";
 import { CustomError } from "../../domain/error";
+import { CloudinaryService } from "../../lib/claudinary.service";
 
 export class IncidentService {
+  constructor(private readonly cloudinaryService: CloudinaryService) {}
+
   async createIncident(createincidentDto: CreateincidentDto, user: UserEntity) {
-    console.log(createincidentDto.image_url);
+    console.log("DTO", createincidentDto.location);
     try {
-      // const location = await LocationModel.create({
-      //   data: {
-      //     latitude: createincidentDto.location.latitude,
-      //     longitude: createincidentDto.location.longitude,
-      //     altitude: createincidentDto.location.altitude,
-      //   },
-      // });
+      const location = await LocationModel.create({
+        data: {
+          latitude: createincidentDto.location.latitude,
+          longitude: createincidentDto.location.latitude,
+          altitude: createincidentDto.location.altitude,
+        },
+      });
+
+      console.log("LOCATION", location);
+
       const incident = await IncidentModel.create({
         data: {
           title: createincidentDto.title,
@@ -22,7 +29,7 @@ export class IncidentService {
           type_id: +createincidentDto.type_id,
           user_id: user.id,
           status_id: 1,
-          location_id: 1, //location.id,
+          location_id: location.id,
         },
         include: {
           incident_status: true,
@@ -35,7 +42,8 @@ export class IncidentService {
         incident,
       };
     } catch (error) {
-      throw CustomError.internalServer(`'Error creating incident': ${error}`);
+      console.log(error);
+      throw CustomError.internalServer(`'Error creating incident' `);
     }
   }
 
@@ -50,6 +58,7 @@ export class IncidentService {
         IncidentModel.findMany({
           skip: skip,
           take: limit,
+
           include: {
             incident_status: true,
             incident_type: true,
@@ -60,6 +69,8 @@ export class IncidentService {
           },
         }),
       ]);
+      console.log(allIncidents);
+      console.log("TOTAL", total);
       /*const allIncidents = await IncidentModel.findMany({
         skip: skip,
         take: limit,
@@ -120,7 +131,7 @@ export class IncidentService {
   }
 
   //Delete incident
-  async deleteIncident(id: number) {
+  async deleteIncident(id: IncidentEntity["id"]) {
     try {
       const idIsMatch = await IncidentModel.findUnique({
         where: { id: id },

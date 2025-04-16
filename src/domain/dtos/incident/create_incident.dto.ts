@@ -15,14 +15,17 @@ export class CreateincidentDto {
   static create(object: { [key: string]: any }): [string?, CreateincidentDto?] {
     const { title, description, image_url, priority, type_id, location } =
       object;
+    console.log("location", JSON.parse(location));
 
     if (!title) return ["El titulo es requerido", undefined];
     if (!description) return ["La descripcion es requerida", undefined];
     if (!image_url) return ["La imagen es requerida", undefined];
     if (!priority) return ["La prioridad es requerida", undefined];
     if (!type_id) return ["El tipo es requerido", undefined];
-    // if (typeof location !== "object")
-    // return ["Ubicacion invalida (No es un objeto)", undefined];
+    if (typeof JSON.parse(location) !== "object")
+      return ["Ubicacion invalida (No es un objeto)", undefined];
+
+    const location1 = JSON.parse(location);
 
     return [
       undefined,
@@ -32,7 +35,7 @@ export class CreateincidentDto {
         image_url,
         priority,
         type_id,
-        location
+        location1
       ),
     ];
   }

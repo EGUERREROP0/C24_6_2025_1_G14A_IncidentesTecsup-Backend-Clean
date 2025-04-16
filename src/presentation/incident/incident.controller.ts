@@ -26,8 +26,8 @@ export class IncidentController {
   createIncident = async (req: Request, res: Response) => {
     const user = req.body.user;
     const file = (req as any).files?.image;
-    console.log("BODY:", req.body);
-    console.log("FILES:", file);
+    // console.log("BODY:", req.body);
+    // console.log("FILES:", file);
 
     if (!file) return res.status(400).json({ error: "No image provided" });
 
