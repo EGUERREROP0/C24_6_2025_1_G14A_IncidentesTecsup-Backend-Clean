@@ -27,6 +27,18 @@ export class CreateincidentDto {
 
     const location1 = JSON.parse(location);
 
+    if (!location1.latitude) return ["La latitud es requerida", undefined];
+    if (!location1.longitude) return ["La longitud es requerida", undefined];
+    if (!location1.altitude) return ["La altitud es requerida", undefined];
+    if (typeof location1.latitude !== "number")
+      return ["La latitud no es un numero", undefined];
+    if (typeof location1.longitude !== "number")
+      return ["La longitud no es un numero", undefined];
+    if (typeof location1.altitude !== "number")
+      return ["La altitud no es un numero", undefined];
+    if (location1.latitude < -90 || location1.latitude > 90)
+      return ["La latitud no es valida", undefined];
+
     return [
       undefined,
       new CreateincidentDto(

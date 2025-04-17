@@ -39,12 +39,45 @@ export class IncidentService {
       });
 
       return {
-        incident,
+        incident: IncidentEntity.fromObject(incident),
+        message: "Incidente creado correctamente",
       };
     } catch (error) {
       console.log(error);
       throw CustomError.internalServer(`'Error creating incident' `);
     }
+  }
+
+  //? Claudinary upload images
+  async handleCreateIncident(
+    body: { [key: string]: any },
+    user: UserEntity,
+    file: any
+  ) {
+    if (!file) return { error: "No hay una imagen proporcionada" };
+
+    //Subir imagen a cloudinary
+    const result = await this.cloudinaryService.uploadImage({
+      fileBuffer: file.data,
+      folder: "incidents",
+      fileName: `incident_${Date.now()}`,
+      resourceType: "image",
+    });
+
+    // console.log(result);
+    if (!result?.secure_url) return { error: "Error subiendo imagen" };
+
+    if (!result?.secure_url)
+      throw CustomError.internalServer("Error subiendo imagen");
+
+    // Validar DTO
+    const [error, createIncidentDto] = CreateincidentDto.create({
+      ...body,
+      image_url: result.secure_url,
+    });
+    if (error) throw CustomError.badRequest(error);
+
+    return this.createIncident(createIncidentDto!, user);
   }
 
   //Get all incidents

@@ -2,9 +2,7 @@ import { Request, Response } from "express";
 import { CustomError } from "../../domain/error";
 import { CreateincidentDto, PaginationDto } from "../../domain";
 import { IncidentService } from "./incident.service";
-import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryService } from "../../lib/claudinary.service";
-import { IncidentModel } from "../../data/postgres/prisma";
 
 export class IncidentController {
   constructor(
@@ -29,7 +27,7 @@ export class IncidentController {
     // console.log("BODY:", req.body);
     // console.log("FILES:", file);
 
-    if (!file) return res.status(400).json({ error: "No image provided" });
+    /*if (!file) return res.status(400).json({ error: "No image provided" });
 
     //Subir imagen a cloudinary
     const result = await this.cloudinaryService.uploadImage({
@@ -48,12 +46,13 @@ export class IncidentController {
       ...req.body,
       image_url: result.secure_url,
     });
-    if (error) return res.status(400).json({ error });
+    if (error) return res.status(400).json({ error });*/
 
     this.incidentService
-      .createIncident(createIncidentDto!, user)
+      .handleCreateIncident(req.body, user, file)
+      // .createIncident(createIncidentDto!, user)
       .then((response) => {
-        return res.status(201).json(response);
+        return res.status(200).json(response);
       })
       .catch((error) => {
         this.handleError(error, res);
