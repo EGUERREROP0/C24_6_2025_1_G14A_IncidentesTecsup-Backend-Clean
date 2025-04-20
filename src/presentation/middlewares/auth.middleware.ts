@@ -24,20 +24,47 @@ export class AuthMiddleware {
     if (!token) return res.status(401).json({ error: "No token provided" });
 
     try {
-      const payload = await Jwt.validateToken<{ id: string }>(token);
+      const payload = await Jwt.validateToken<{ id: string; role_id: string }>(
+        token
+      );
+      //console.log(payload, "Payload from middleware");
       if (!payload) return res.status(401).json({ error: "Invalid token" });
 
       const user = await UserModel.findFirst({
         where: { id: +payload.id },
+        include: { user_role: true },
       });
       if (!user) return res.status(401).json({ error: "Invalid token", user });
 
       req.body.user = UserEntity.fromObject(user);
+      //req.body.role = payload.role_id;
+      (req as any).userRoleId = +payload.role_id;
+      //console.log(req.body);
 
       next();
     } catch (error) {
       console.log(error);
       throw CustomError.internalServer("Internal server Error");
     }
+  }
+
+  static verifyIsSuperAdmin(req: Request, res: Response, next: NextFunction) {
+    const roleId = (req as any).userRoleId;
+    if (roleId !== 3) {
+      return res
+        .status(403)
+        .json({ error: "UnAuthorized access denied only SuperAdmin" });
+    }
+    next();
+  }
+
+  static verifyIsAdmin(req: Request, res: Response, next: NextFunction) {
+    const roleId = (req as any).userRoleId;
+    if (roleId !== 2 && roleId !== 3) {
+      return res
+        .status(403)
+        .json({ error: "UnAuthorized access denied only Admin" });
+    }
+    next();
   }
 }

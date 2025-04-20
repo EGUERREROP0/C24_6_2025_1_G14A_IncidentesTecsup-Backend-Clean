@@ -102,7 +102,7 @@ export class IncidentService {
           },
         }),
       ]);
-      console.log(allIncidents);
+      // console.log(allIncidents);
       console.log("TOTAL", total);
       /*const allIncidents = await IncidentModel.findMany({
         skip: skip,

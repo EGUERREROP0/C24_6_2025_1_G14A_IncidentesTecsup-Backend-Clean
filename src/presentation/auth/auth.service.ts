@@ -33,7 +33,10 @@ export class AuthService {
       //Use Our Entity
       const { password, ...userEntity } = UserEntity.fromObject(user);
 
-      const token = await Jwt.generateToken({ id: user.id });
+      const token = await Jwt.generateToken({
+        id: user.id,
+        role_id: user.role_id,
+      });
       if (!token) throw CustomError.internalServer("Error el el servidor");
       console.log({ user: userEntity, token: token });
 
@@ -62,7 +65,10 @@ export class AuthService {
       const { password, ...userEntity } = UserEntity.fromObject(user);
 
       //Generar token
-      const token = await Jwt.generateToken({ id: user.id });
+      const token = await Jwt.generateToken({
+        id: user.id,
+        role_id: user.role_id,
+      });
 
       if (!token) throw CustomError.internalServer("Error en el servidor");
 

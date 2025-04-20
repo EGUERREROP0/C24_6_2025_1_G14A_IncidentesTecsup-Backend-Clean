@@ -83,6 +83,7 @@ export class UserService {
       return UserEntity.fromObject(user);
     } catch (error) {
       console.error("Error fetching user:", error);
+      if (error instanceof CustomError) throw error;
       throw CustomError.internalServer(`${error}`);
     }
   }

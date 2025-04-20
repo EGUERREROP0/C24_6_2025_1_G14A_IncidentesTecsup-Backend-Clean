@@ -14,7 +14,11 @@ export class UserRoutes {
     const userController = new UserController(userService);
 
     //Routes of controller
-    router.get("/", [AuthMiddleware.validateJWT], userController.getAllUsers);
+    router.get(
+      "/",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      userController.getAllUsers
+    );
     router.get(
       "/:id",
       [AuthMiddleware.validateJWT],
@@ -23,7 +27,7 @@ export class UserRoutes {
 
     router.delete(
       "/:id",
-      [AuthMiddleware.validateJWT],
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       userController.deleteUserById
     );
     return router;

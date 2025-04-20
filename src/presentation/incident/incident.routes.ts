@@ -17,17 +17,33 @@ export class IncidentRoutes {
       cloudinaryService
     );
 
-    router.use(AuthMiddleware.validateJWT);
+    // router.use(AuthMiddleware.validateJWT);
 
-    router.post("/", incidenteController.createIncident);
-    router.get("/", incidenteController.getAllIncidents);
+    router.post(
+      "/",
+      [AuthMiddleware.validateJWT],
+      incidenteController.createIncident
+    );
+    router.get(
+      "/",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      incidenteController.getAllIncidents
+    );
 
-    router.get("/user", incidenteController.getIncidentsByUser);
+    router.get(
+      "/user",
+      [AuthMiddleware.validateJWT],
+      incidenteController.getIncidentsByUser
+    );
 
     //TODO: Implementar
     router.get("/:id");
     router.put("/:id");
-    router.delete("/:id", incidenteController.deleteIncident);
+    router.delete(
+      "/:id",
+      [AuthMiddleware.validateJWT],
+      incidenteController.deleteIncident
+    );
 
     router.get("/location/:id");
 
