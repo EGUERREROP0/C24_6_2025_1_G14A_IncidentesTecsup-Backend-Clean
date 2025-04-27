@@ -18,14 +18,15 @@ export class AuthService {
         data: {
           ...registerUserDto!,
           password: Bcrypt.hash(registerUserDto.password),
-          user_role: {
-            connect: { name: "user" }, //  Esto asigna el rol automáticamente
-          },
+          // user_role: {
+          //   connect: { name: "user" },
+          // },
         },
         include: {
           user_role: true, //  Esto te trae el nombre del rol para incluirlo en la respuesta
         },
       });
+      
       // console.log({ user });
 
       //JWT --> Mantener autenticazion
@@ -38,7 +39,7 @@ export class AuthService {
         role_id: user.role_id,
       });
       if (!token) throw CustomError.internalServer("Error el el servidor");
-      console.log({ user: userEntity, token: token });
+      console.log({ user: userEntity, token: token, role: userEntity.user_role });
 
       return { user: userEntity, token: token };
     } catch (error) {
@@ -50,6 +51,7 @@ export class AuthService {
   async loginUser(loginUserDto: LoginUserDto) {
     const user = await UserModel.findFirst({
       where: { email: loginUserDto.email },
+      include: { user_role: true },
     });
 
     if (!user) throw CustomError.badRequest("El email no existe");
@@ -63,6 +65,7 @@ export class AuthService {
 
       //Use Our Entity
       const { password, ...userEntity } = UserEntity.fromObject(user);
+      // const { password, ...userEntity } = user;
 
       //Generar token
       const token = await Jwt.generateToken({
@@ -72,7 +75,7 @@ export class AuthService {
 
       if (!token) throw CustomError.internalServer("Error en el servidor");
 
-      return { user: userEntity, token: token };
+      return { user: userEntity, token: token, role: userEntity.user_role };
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

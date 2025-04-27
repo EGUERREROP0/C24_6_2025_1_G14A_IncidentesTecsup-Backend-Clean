@@ -15,7 +15,7 @@ model app_user {
   google_id                                       String?            @db.VarChar(150)
   profile_picture                                 String?
   is_active                                       Boolean?           @default(true)
-  role_id                                         Int?
+  role_id                                         Int?               @default(1)
   password                                        String?
   email_validated                                 Boolean?           @default(false)
   user_role                                       user_role?         @relation(fields: [role_id], references: [id], onUpdate: NoAction)

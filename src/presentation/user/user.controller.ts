@@ -16,6 +16,7 @@ export class UserController {
     return res.status(500).json({ error: "Internal server Error" });
   };
 
+  //* Get all users
   getAllUsers = (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = "" } = req.query;
     const [error, paginationDto] = PaginationDto.create(+page, +limit);
@@ -46,6 +47,41 @@ export class UserController {
       .getUserById(id)
       .then((user) => res.status(200).json(user))
       .catch((error) => this.handleError(error, res));
+  };
+
+  //* Profile user
+  getProfileUser = (req: Request, res: Response) => {
+    const user = req.body.user;
+
+    if (!user) return res.status(400).json({ error: "No hay usuario" });
+
+    this.userService
+      .getProfileUser(user)
+      .then((user) => {
+        return res.status(200).json( user );
+      })
+      .catch((error) => {
+        this.handleError(error, res);
+      });
+  };
+
+  //!*Convert user to admin
+  convertUserToAdmin = (req: Request, res: Response) => {
+    const id = +req.params.id;
+    console.log(id);
+    if (isNaN(id))
+      return res
+        .status(400)
+        .json({ error: `El id: ${id} ingresado no es un numero` });
+
+    this.userService
+      .convertUserToAdmin(id)
+      .then((user) => {
+        return res.status(200).json(user);
+      })
+      .catch((error) => {
+        this.handleError(error, res);
+      });
   };
 
   //!*Delete user by id

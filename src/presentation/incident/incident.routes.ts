@@ -39,6 +39,8 @@ export class IncidentRoutes {
     //TODO: Implementar
     router.get("/:id");
     router.put("/:id");
+
+    
     router.delete(
       "/:id",
       [AuthMiddleware.validateJWT],

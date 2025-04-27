@@ -25,19 +25,6 @@ export class UserService {
               },
             },
           ],
-
-          //  OR:[
-          //    first_name: {
-          //     contains: search,
-          //     mode: "insensitive" as const, // indicar que el modo es "insensitive" es valido no solo string sino cualquiera
-          //   },
-          //   user_role:{
-          //     role_name: {
-          //       contains: search,
-          //       mode: "insensitive" as const,
-          //     },
-          //   }
-          //  ]
         }
       : {};
     try {
@@ -84,6 +71,46 @@ export class UserService {
     } catch (error) {
       console.error("Error fetching user:", error);
       if (error instanceof CustomError) throw error;
+      throw CustomError.internalServer(`${error}`);
+    }
+  }
+
+  // Get profile user
+  async getProfileUser(user: UserEntity) {
+    try {
+      const findUser = await UserModel.findFirst({
+        where: { id: user.id },
+        include: { user_role: true },
+      });
+
+      if (!findUser) throw CustomError.notFound("Usuario no encontrado");
+
+      // const {password, ...restUser} = findUser;
+
+      return findUser; //UserEntity.fromObject(findUser);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      throw CustomError.internalServer(`${error}`);
+    }
+  }
+
+  //Convert user to admin
+  async convertUserToAdmin(id: number) {
+    try {
+      const user = await UserModel.findUnique({ where: { id } });
+      if (!user) throw CustomError.notFound("Usuario no encontrado");
+
+      const updatedUser = await UserModel.update({
+        where: { id },
+        data: { role_id: 2 },
+        include: {
+          user_role: true,
+        },
+      });
+
+      return UserEntity.fromObject(updatedUser);
+    } catch (error) {
+      console.error("Error converting user to admin:", error);
       throw CustomError.internalServer(`${error}`);
     }
   }

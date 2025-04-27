@@ -14,6 +14,13 @@ export class UserRoutes {
     const userController = new UserController(userService);
 
     //Routes of controller
+
+    router.get(
+      "/profile",
+      [AuthMiddleware.validateJWT],
+      userController.getProfileUser
+    );
+
     router.get(
       "/",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
@@ -21,9 +28,18 @@ export class UserRoutes {
     );
     router.get(
       "/:id",
-      [AuthMiddleware.validateJWT],
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       userController.getUserById
     );
+
+    
+
+    //Convert user to admin
+    router.put("/convert_to_admin/:id", [
+      AuthMiddleware.validateJWT,
+      AuthMiddleware.verifyIsSuperAdmin,
+      userController.convertUserToAdmin,
+    ]);
 
     router.delete(
       "/:id",
