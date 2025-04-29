@@ -11,3 +11,4 @@ export const IncidentStatusModel = prisma.incident_status;
 export const IncidentTypeModel = prisma.incident_type;
 export const LocationModel = prisma.location;
 export const NotificationModel = prisma.notification;
+export const IncidentTypeAdminModel = prisma.incident_type_admin;

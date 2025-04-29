@@ -8,40 +8,44 @@ datasource db {
 }
 
 model app_user {
-  id                                              Int                @id @default(autoincrement())
-  first_name                                      String?            @db.VarChar(100)
-  last_name                                       String?            @db.VarChar(100)
-  email                                           String             @unique @db.VarChar(150)
-  google_id                                       String?            @db.VarChar(150)
+  id                                              Int                   @id @default(autoincrement())
+  first_name                                      String?               @db.VarChar(100)
+  last_name                                       String?               @db.VarChar(100)
+  email                                           String                @unique @db.VarChar(150)
+  google_id                                       String?               @db.VarChar(150)
   profile_picture                                 String?
-  is_active                                       Boolean?           @default(true)
-  role_id                                         Int?               @default(1)
+  is_active                                       Boolean?              @default(true)
+  role_id                                         Int?                  @default(1)
   password                                        String?
-  email_validated                                 Boolean?           @default(false)
-  user_role                                       user_role?         @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  email_validated                                 Boolean?              @default(false)
+  user_role                                       user_role?            @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  incident_incident_assigned_admin_idToapp_user   incident[]            @relation("incident_assigned_admin_idToapp_user")
   incident                                        incident[]
   incident_history                                incident_history[]
-  notification_notification_receiver_idToapp_user notification[]     @relation("notification_receiver_idToapp_user")
-  notification_notification_sender_idToapp_user   notification[]     @relation("notification_sender_idToapp_user")
+  incident_type_admin                             incident_type_admin[]
+  notification_notification_receiver_idToapp_user notification[]        @relation("notification_receiver_idToapp_user")
+  notification_notification_sender_idToapp_user   notification[]        @relation("notification_sender_idToapp_user")
 }
 
 model incident {
-  id               Int                @id @default(autoincrement())
-  title            String?            @db.VarChar(150)
-  description      String?
-  image_url        String?
-  priority         priority_enum?
-  report_date      DateTime?          @default(now()) @db.Timestamp(6)
-  close_date       DateTime?          @db.Timestamp(6)
-  status_id        Int?
-  user_id          Int?
-  type_id          Int?
-  location_id      Int?
-  location         location?          @relation(fields: [location_id], references: [id], onUpdate: NoAction)
-  incident_status  incident_status?   @relation(fields: [status_id], references: [id], onUpdate: NoAction)
-  incident_type    incident_type?     @relation(fields: [type_id], references: [id], onUpdate: NoAction)
-  app_user         app_user?          @relation(fields: [user_id], references: [id], onUpdate: NoAction)
-  incident_history incident_history[]
+  id                                            Int                @id @default(autoincrement())
+  title                                         String?            @db.VarChar(150)
+  description                                   String?
+  image_url                                     String?
+  priority                                      priority_enum?
+  report_date                                   DateTime?          @default(now()) @db.Timestamp(6)
+  close_date                                    DateTime?          @db.Timestamp(6)
+  status_id                                     Int?
+  user_id                                       Int?
+  type_id                                       Int?
+  location_id                                   Int?
+  assigned_admin_id                             Int?
+  app_user_incident_assigned_admin_idToapp_user app_user?          @relation("incident_assigned_admin_idToapp_user", fields: [assigned_admin_id], references: [id], onUpdate: NoAction)
+  location                                      location?          @relation(fields: [location_id], references: [id], onUpdate: NoAction)
+  incident_status                               incident_status?   @relation(fields: [status_id], references: [id], onUpdate: NoAction)
+  incident_type                                 incident_type?     @relation(fields: [type_id], references: [id], onUpdate: NoAction)
+  app_user                                      app_user?          @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+  incident_history                              incident_history[]
 }
 
 model incident_history {
@@ -63,9 +67,10 @@ model incident_status {
 }
 
 model incident_type {
-  id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(100)
-  incident incident[]
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(100)
+  incident            incident[]
+  incident_type_admin incident_type_admin[]
 }
 
 model location {
@@ -93,6 +98,14 @@ model user_role {
   id       Int        @id @default(autoincrement())
   name     String     @unique @db.VarChar(50)
   app_user app_user[]
+}
+
+model incident_type_admin {
+  id               Int           @id @default(autoincrement())
+  incident_type_id Int
+  admin_id         Int
+  app_user         app_user      @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  incident_type    incident_type @relation(fields: [incident_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum incident_status_enum {

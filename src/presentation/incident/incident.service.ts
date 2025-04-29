@@ -1,4 +1,9 @@
-import { IncidentModel, LocationModel } from "../../data/postgres/prisma";
+import {
+  IncidentHistoryModel,
+  IncidentModel,
+  IncidentTypeAdminModel,
+  LocationModel,
+} from "../../data/postgres/prisma";
 import { CreateincidentDto, PaginationDto, UserEntity } from "../../domain";
 import { IncidentEntity } from "../../domain/entities/incident.entity";
 import { CustomError } from "../../domain/error";
@@ -8,6 +13,15 @@ export class IncidentService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   async createIncident(createincidentDto: CreateincidentDto, user: UserEntity) {
+    //Asignar responsable al incidente
+    const responsibleAdmin = await IncidentTypeAdminModel.findFirst({
+      where: { incident_type_id: +createincidentDto.type_id },
+      //include: { admin: true },
+    });
+
+    if (!responsibleAdmin)
+      throw CustomError.notFound("No hay admin responsable asignado");
+
     console.log("DTO", createincidentDto.location);
     try {
       const location = await LocationModel.create({
@@ -30,11 +44,13 @@ export class IncidentService {
           user_id: user.id,
           status_id: 1,
           location_id: location.id,
+          assigned_admin_id: responsibleAdmin.admin_id,
         },
         include: {
           incident_status: true,
           incident_type: true,
           location: true,
+          //incident_type_admin: true,
         },
       });
 
@@ -184,6 +200,57 @@ export class IncidentService {
     } catch (error) {
       console.log(error);
       throw CustomError.internalServer(` ${error}`);
+    }
+  }
+
+  // Update incident by status
+  async updateIncidentStatus(
+    id: number,
+    newStatusId: number,
+    user: UserEntity
+  ) {
+    try {
+      const incident = await IncidentModel.findUnique({
+        where: { id },
+        include: { incident_status: true },
+      });
+      if (!incident)
+        throw CustomError.notFound(`Incidente con id ${id} no encontrado`);
+
+      const previousStatusName = incident.status_id;
+
+      const updatedIncident = await IncidentModel.update({
+        where: { id },
+        data: { status_id: newStatusId },
+        include: {
+          incident_status: true,
+          incident_type: true,
+          location: true,
+        },
+      });
+
+      //Guardar el incidente en el historial
+      await IncidentHistoryModel.create({
+        data: {
+          incident_id: id,
+          previous_status: previousStatusName?.toString(),
+          new_status: newStatusId.toString(),
+          comment: `El estado del incidente fue cambiado de 
+          ${incident.incident_status?.name} a ${updatedIncident.incident_status?.name} por ${user.first_name}`,
+          modified_by: user.id,
+          change_date: new Date(),
+        },
+      });
+
+      return {
+        message: "Estado del incidente actualizado correctamente",
+        updatedIncident: updatedIncident, //IncidentEntity.fromObject(updatedIncident),
+      };
+    } catch (error) {
+      console.log(error);
+      throw CustomError.internalServer(
+        `Error actualizando estado del incidente`
+      );
     }
   }
 }

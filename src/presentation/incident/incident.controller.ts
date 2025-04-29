@@ -115,4 +115,19 @@ export class IncidentController {
         this.handleError(error, res);
       });
   };
+
+  //! Update incident by status
+  updateIncidentStatus = (req: Request, res: Response) => {
+    const id = +req.params.id;
+    const { status_id } = req.body;
+
+    if (isNaN(id)) return res.status(400).json({ error: "El id no es válido" });
+    if (!status_id)
+      return res.status(400).json({ error: "El estado es requerido" });
+
+    this.incidentService
+      .updateIncidentStatus(id, +status_id, req.body.user)
+      .then((response) => res.status(200).json(response))
+      .catch((error) => this.handleError(error, res));
+  };
 }

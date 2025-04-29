@@ -38,9 +38,12 @@ export class IncidentRoutes {
 
     //TODO: Implementar
     router.get("/:id");
-    router.put("/:id");
+    router.put(
+      "/:id/status",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
+      incidenteController.updateIncidentStatus
+    );
 
-    
     router.delete(
       "/:id",
       [AuthMiddleware.validateJWT],
