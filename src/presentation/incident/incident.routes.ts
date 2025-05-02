@@ -26,7 +26,7 @@ export class IncidentRoutes {
     );
     router.get(
       "/",
-      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      // [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       incidenteController.getAllIncidents
     );
 

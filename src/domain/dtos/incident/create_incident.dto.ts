@@ -15,7 +15,8 @@ export class CreateincidentDto {
   static create(object: { [key: string]: any }): [string?, CreateincidentDto?] {
     const { title, description, image_url, priority, type_id, location } =
       object;
-    console.log("location", JSON.parse(location));
+    // console.log(location)
+    // console.log("location", JSON.parse(location));
 
     if (!title) return ["El titulo es requerido", undefined];
     if (!description) return ["La descripcion es requerida", undefined];
@@ -39,6 +40,7 @@ export class CreateincidentDto {
     if (location1.latitude < -90 || location1.latitude > 90)
       return ["La latitud no es valida", undefined];
 
+    // console.log("location1 desde el dto", location1);
     return [
       undefined,
       new CreateincidentDto(

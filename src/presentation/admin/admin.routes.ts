@@ -8,6 +8,7 @@ export class AdminRoutes {
 
     const adminController = new AdminController();
 
+    //Asignar Responsabilidad  a Admin
     router.post(
       "/:id",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],

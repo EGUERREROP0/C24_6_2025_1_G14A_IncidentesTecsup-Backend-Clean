@@ -27,12 +27,12 @@ export class IncidentService {
       const location = await LocationModel.create({
         data: {
           latitude: createincidentDto.location.latitude,
-          longitude: createincidentDto.location.latitude,
+          longitude: createincidentDto.location.longitude,
           altitude: createincidentDto.location.altitude,
         },
       });
 
-      console.log("LOCATION", location);
+      console.log("LOIONCAT", location);
 
       const incident = await IncidentModel.create({
         data: {
@@ -53,6 +53,8 @@ export class IncidentService {
           //incident_type_admin: true,
         },
       });
+
+      console.log("INCIDENT", incident);
 
       return {
         incident: IncidentEntity.fromObject(incident),
