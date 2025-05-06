@@ -26,7 +26,7 @@ export class AuthService {
           user_role: true, //  Esto te trae el nombre del rol para incluirlo en la respuesta
         },
       });
-      
+
       // console.log({ user });
 
       //JWT --> Mantener autenticazion
@@ -39,7 +39,11 @@ export class AuthService {
         role_id: user.role_id,
       });
       if (!token) throw CustomError.internalServer("Error el el servidor");
-      console.log({ user: userEntity, token: token, role: userEntity.user_role });
+      console.log({
+        user: userEntity,
+        token: token,
+        role: userEntity.user_role,
+      });
 
       return { user: userEntity, token: token };
     } catch (error) {
@@ -58,11 +62,11 @@ export class AuthService {
     if (!user.password)
       throw CustomError.badRequest("El password no esta definido");
 
+    const isMatch = Bcrypt.compare(loginUserDto.password, user.password);
+
+    if (!isMatch) throw CustomError.badRequest("El password es incorrecto!");
+
     try {
-      const isMatch = Bcrypt.compare(loginUserDto.password, user.password);
-
-      if (!isMatch) throw CustomError.badRequest("El password es incorrecto!");
-
       //Use Our Entity
       const { password, ...userEntity } = UserEntity.fromObject(user);
       // const { password, ...userEntity } = user;

@@ -17,7 +17,11 @@ export class typeIncidentRoutes {
       [AuthMiddleware.validateJWT],
       typeIncidentController.getAllTypeIncidents
     );
-    // router.get("/", typeIncidentController.getAllTypeIncidents);
+    router.delete(
+      "/:id",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      typeIncidentController.deleteTypeIncident
+    );
     // router.get("/:id", typeIncidentController.getTypeIncidentById);
 
     return router;

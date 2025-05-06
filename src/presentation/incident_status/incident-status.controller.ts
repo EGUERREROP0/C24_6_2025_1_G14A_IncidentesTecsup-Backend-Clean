@@ -20,11 +20,7 @@ export class IncidentStatusController {
     
     this.incidentStatusService
       .getAllIncidentStatuses()
-      .then((incidentStatus) => {
-        return res.status(200).json(incidentStatus);
-      })
-      .catch((error) => {
-        this.handleError(error, res);
-      });
+      .then((incidentStatus) => res.status(200).json(incidentStatus))
+      .catch((error) => this.handleError(error, res));
   };
 }

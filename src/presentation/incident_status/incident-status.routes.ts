@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { IncidentStatusController } from "./incident-status.controller";
 import { IncidentStatusService } from "./incident-status.service";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
 
 export class IncidentStatusRoutes {
   public static get routes(): Router {
@@ -9,7 +10,7 @@ export class IncidentStatusRoutes {
     const incidentStatusService = new IncidentStatusService();
     const incidentStatusController = new IncidentStatusController(incidentStatusService)
 
-    router.get("/", incidentStatusController.getAllIncidentStatuses);
+    router.get("/",[AuthMiddleware.validateJWT], incidentStatusController.getAllIncidentStatuses);
 
     return router;
   }

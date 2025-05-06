@@ -1,66 +1,47 @@
 import { Request, Response } from "express";
-import { IncidentModel, IncidentTypeAdminModel } from "../../data/postgres/prisma";
+import {IncidentTypeAdminModel } from "../../data/postgres/prisma";
+import { AdminService } from "./admin.service";
+import { AsignResponsabilityAdminDto } from '../../domain/dtos/admin/asign-responsability-admin.dto';
+import { CustomError } from "../../domain/error";
 
 export class AdminController {
-  public AsignResponsabilityAdmin = async (req: Request, res: Response) => {
-    const id = +req.params.id;
-    const incidentTypeIdNumber = +req.body.incident_type_id;
-    //const s = +incident_type_id;
-    const admin = await IncidentTypeAdminModel.create({
-      data: {
-        admin_id: id,
-        incident_type_id: incidentTypeIdNumber,
-      },
-    });
 
-    res.status(201).json(admin);
+  constructor(private readonly adminService: AdminService) {}
+
+  //!Mapear Error
+    private handleError = (error: unknown, res: Response) => {
+      if (error instanceof CustomError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
+  
+      console.log(`${error}`);
+      return res.status(500).json({ error: "Internal server Error" });
+    };
+
+  //Endpoint para asignar un admin a un incidente
+  public AsignResponsabilityAdmin = async (req: Request, res: Response) => {
+    const {id} = req.params
+    const {incident_type_id} = req.body
+
+    const [error, asignResponsabilityAdminDto] =
+      AsignResponsabilityAdminDto.compare({ incident_type_id, id });
+
+    if (error) return res.status(400).json({error});
+
+    this.adminService.AsignResponsabilityAdmin(asignResponsabilityAdminDto!)
+      .then((admin) => res.status(201).json(admin))
+      .catch((error) => this.handleError(error, res));
   };
 
-  public getIncidentsByAdminId =   async (req: Request, res: Response) => {
+  //Endpoint para obtener los incidentes por adminId
+  public getIncidentsByAdminId =    (req: Request, res: Response) => {
+    const adminId = req.body.user.id; 
+    if(isNaN(adminId) || !adminId) res.status(400).json({error:"Admin ID no es un numero"});
 
-    //   const admins = await IncidentTypeAdminModel.findMany({
-    //     include: { app_user: true },
-    //   });
-    //   res.status(200).json(admins);
-    console.log(req.body.user.id);
-
-    const adminId = req.body.user.id; // extraído del JWT
-
-     const incidents = await IncidentModel.findMany({
-       where: { assigned_admin_id: adminId },
-       include: { location: true, incident_type: true },
-     });
-
-     res.status(200).json(incidents);
+    this.adminService.getIncidentsByAdminId(adminId)
+      .then((incidents) => {
+        res.status(200).json(incidents);
+      })
+      .catch((error)=> this.handleError(error, res));
   }
 }
-
-
-
-
-// const admin = async (req: Request, res: Response) => {
-//       const id = +req.params.id;
-//       const { incident_type_id } = req.body;
-//       const incidentTypeIdNumber = +incident_type_id;
-//       const admin = await IncidentTypeAdminModel.create({
-//         data: {
-//           admin_id: id,
-//           incident_type_id: incidentTypeIdNumber,
-//         },
-//       });
-
-//       res.status(201).json(admin);
-//     };
-
-
-// async (req: Request, res: Response) => {
-//   //   const admins = await IncidentTypeAdminModel.findMany({
-//   //     include: { app_user: true },
-//   //   });
-//   //   res.status(200).json(admins);
-//   console.log(req.body.user.id);
-
-//   const adminId = req.body.user.id; // extraído del JWT
-
- 
-// };
