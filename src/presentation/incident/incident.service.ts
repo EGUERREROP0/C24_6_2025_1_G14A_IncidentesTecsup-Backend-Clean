@@ -95,7 +95,7 @@ export class IncidentService {
     if (!result?.secure_url)
       throw CustomError.internalServer("Error subiendo imagen");
 
-/*
+   /*
     // Verificar duplicado con FastAPI
     let duplicateCheck;
     try {
