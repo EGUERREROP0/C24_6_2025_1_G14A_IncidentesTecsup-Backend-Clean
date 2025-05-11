@@ -49,9 +49,12 @@ docker-compose up -d
 ```
 
 5. Ejecutar migraciones de Prisma:
-
+  5.1 Ejecutar ` npx prisma db pull ` para traer todo los cambios de las tablas de la base de datos y sincronizarlos con prisma
+  5.2 Ejecutar ` npx prisma generate ` para generar los modelos de prisma
 ```bash
-npx prisma migrate dev
+npx prisma db pull 
+npx prisma generate
+
 ```
 
 ## 🏃‍♂️ Ejecución

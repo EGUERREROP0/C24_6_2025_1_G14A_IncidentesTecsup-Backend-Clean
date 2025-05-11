@@ -1,3 +1,4 @@
+import { envs } from "../../config";
 import {
   IncidentHistoryModel,
   IncidentModel,
@@ -8,6 +9,7 @@ import { CreateincidentDto, PaginationDto, UserEntity } from "../../domain";
 import { IncidentEntity } from "../../domain/entities/incident.entity";
 import { CustomError } from "../../domain/error";
 import { CloudinaryService } from "../../lib/claudinary.service";
+import axios from "axios";
 
 export class IncidentService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
@@ -74,6 +76,11 @@ export class IncidentService {
   ) {
     if (!file) return { error: "No hay una imagen proporcionada" };
 
+    if (typeof body.location === "string") {
+      body.location = JSON.parse(body.location);
+    }
+
+    console.log("BODY", body);
     //Subir imagen a cloudinary
     const result = await this.cloudinaryService.uploadImage({
       fileBuffer: file.data,
@@ -87,6 +94,39 @@ export class IncidentService {
 
     if (!result?.secure_url)
       throw CustomError.internalServer("Error subiendo imagen");
+
+/*
+    // Verificar duplicado con FastAPI
+    let duplicateCheck;
+    try {
+      duplicateCheck = await axios.post(envs.API_OPENIA, {
+        description: body.description,
+        image_url: result.secure_url,
+        latitude: parseFloat(body.location.latitude),
+        longitude: parseFloat(body.location.longitude),
+      });
+    } catch (error: any) {
+      console.error("Error al conectar con FastAPI:", error.message);
+      return {
+        error: "No se pudo verificar duplicado con IA",
+      };
+    }
+
+    // Si es duplicado, responder al frontend
+    if (duplicateCheck.data.duplicado) {
+      let score = duplicateCheck.data.score * 100;
+      let whatTime = duplicateCheck.data.incidente_sugerido.hace_tiempo;
+
+      return {
+        duplicado: true,
+        message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
+          score
+        )}%`,
+        sugerido: duplicateCheck.data.incidente_sugerido,
+        score: duplicateCheck.data.score,
+      };
+    }
+    //Codigo nuevo 92 - 107*/
 
     // Validar DTO
     const [error, createIncidentDto] = CreateincidentDto.create({

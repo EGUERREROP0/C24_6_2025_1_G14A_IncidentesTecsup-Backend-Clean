@@ -22,7 +22,8 @@ export class AdminController {
   public AsignResponsabilityAdmin = async (req: Request, res: Response) => {
     const {id} = req.params
     const {incident_type_id} = req.body
-
+    if(isNaN(+id)) return res.status(400).json({error:"ID no es un numero"});
+    
     const [error, asignResponsabilityAdminDto] =
       AsignResponsabilityAdminDto.compare({ incident_type_id, id });
 

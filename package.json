@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsnd --respawn --clear src/app.ts",
     "build": "rimraf ./dist && tsc",
-    "start": "npm run build && node dist/app.js"
+    "start": "npm run build && node dist/app.js",
+    "prisma:migrate": "prisma db pull"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.6.0",
     "cors": "^2.8.5",

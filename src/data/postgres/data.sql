@@ -1,8 +1,8 @@
 -- ================================================
--- PostgreSQL Script for Incident Reporting System
+-- PostgreSQL Script Consolidado para Sistema de Incidentes
 -- ================================================
 
--- Drop existing types and tables (for dev/testing purposes)
+-- Limpiar tipos y tablas existentes
 DROP TYPE IF EXISTS priority_enum CASCADE;
 
 DROP TYPE IF EXISTS incident_status_enum CASCADE;
@@ -10,6 +10,8 @@ DROP TYPE IF EXISTS incident_status_enum CASCADE;
 DROP TABLE IF EXISTS notification;
 
 DROP TABLE IF EXISTS incident_history;
+
+DROP TABLE IF EXISTS incident_type_admin;
 
 DROP TABLE IF EXISTS incident;
 
@@ -23,18 +25,18 @@ DROP TABLE IF EXISTS app_user;
 
 DROP TABLE IF EXISTS user_role;
 
--- ENUM types
-CREATE TYPE priority_enum AS ENUM ('low', 'medium', 'high');
+-- Tipos ENUM
+CREATE TYPE priority_enum AS ENUM ('Alta', 'Media', 'Baja');
 
-CREATE TYPE incident_status_enum AS ENUM ('pending', 'in_progress', 'resolved', 'closed', 'reopened');
+CREATE TYPE incident_status_enum AS ENUM ('pendiente', 'en_progreso', 'resuelto', 'cerrado', 're_abierto');
 
--- User roles
+-- Tabla de roles de usuario
 CREATE TABLE user_role (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Users
+-- Tabla de usuarios
 CREATE TABLE app_user (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(100),
@@ -43,31 +45,33 @@ CREATE TABLE app_user (
     google_id VARCHAR(150),
     profile_picture TEXT,
     is_active BOOLEAN DEFAULT TRUE,
-    role_id INT REFERENCES user_role (id) ON DELETE SET NULL
+    role_id INT REFERENCES user_role (id) ON DELETE SET NULL DEFAULT 1,
+    password TEXT,
+    email_validated BOOLEAN DEFAULT FALSE
 );
 
--- Location
+-- Tabla de ubicaciones
 CREATE TABLE location (
     id SERIAL PRIMARY KEY,
-    latitude DECIMAL(9, 6),
-    longitude DECIMAL(9, 6),
-    altitude DECIMAL(9, 2),
+    latitude DECIMAL(15, 10),
+    longitude DECIMAL(15, 10),
+    altitude DECIMAL(15, 10),
     reference TEXT
 );
 
--- Incident Types
+-- Tipos de incidentes
 CREATE TABLE incident_type (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
 
--- Incident Status
+-- Estados del incidente
 CREATE TABLE incident_status (
     id SERIAL PRIMARY KEY,
     name incident_status_enum NOT NULL
 );
 
--- Incidents
+-- Tabla de incidentes
 CREATE TABLE incident (
     id SERIAL PRIMARY KEY,
     title VARCHAR(150),
@@ -76,13 +80,14 @@ CREATE TABLE incident (
     priority priority_enum,
     report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     close_date TIMESTAMP,
+    type_id INT REFERENCES incident_type (id) ON DELETE SET NULL,
     status_id INT REFERENCES incident_status (id) ON DELETE SET NULL,
     user_id INT REFERENCES app_user (id) ON DELETE SET NULL,
-    type_id INT REFERENCES incident_type (id) ON DELETE SET NULL,
-    location_id INT REFERENCES location (id) ON DELETE SET NULL
+    location_id INT REFERENCES location (id) ON DELETE SET NULL,
+    assigned_admin_id INT REFERENCES app_user (id) ON DELETE SET NULL
 );
 
--- Incident History
+-- Historial de incidentes
 CREATE TABLE incident_history (
     id SERIAL PRIMARY KEY,
     incident_id INT REFERENCES incident (id) ON DELETE CASCADE,
@@ -93,7 +98,7 @@ CREATE TABLE incident_history (
     modified_by INT REFERENCES app_user (id) ON DELETE SET NULL
 );
 
--- Notifications
+-- Notificaciones
 CREATE TABLE notification (
     id SERIAL PRIMARY KEY,
     sender_id INT REFERENCES app_user (id) ON DELETE CASCADE,
@@ -104,93 +109,86 @@ CREATE TABLE notification (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Initial role seeds
+-- Relación entre tipo de incidente y administradores
+CREATE TABLE incident_type_admin (
+    id SERIAL PRIMARY KEY,
+    incident_type_id INT NOT NULL REFERENCES incident_type (id) ON DELETE CASCADE,
+    admin_id INT NOT NULL REFERENCES app_user (id) ON DELETE CASCADE
+);
+
+-- =============================
+-- Insertar datos iniciales
+-- =============================
+
+-- Roles
 INSERT INTO
     user_role (name)
 VALUES ('user'),
     ('admin'),
     ('superadmin');
 
--- Initial status seeds
+-- Estados
 INSERT INTO
     incident_status (name)
-VALUES ('pending'),
-    ('in_progress'),
-    ('resolved'),
-    ('closed'),
-    ('reopened');
+VALUES ('pendiente'),
+    ('en_progreso'),
+    ('resuelto'),
+    ('cerrado'),
+    ('re_abierto');
 
--- =============================================
--- SELECT queries for Incident Reporting System
--- =============================================
+-- Tipos de incidente
+INSERT INTO
+    incident_type (name)
+VALUES ('Infraestructura'),
+    ('Seguridad'),
+    ('TI'),
+    ('Limpieza');
 
--- 1. Select all users
-SELECT * FROM app_user;
+-- Ejemplo de actualización de roles y estados
+UPDATE app_user SET role_id = 3 WHERE id = 5;
+-- UPDATE incident SET status_id = 2 WHERE id = 46;
 
--- 2. Select all user roles
-SELECT * FROM user_role;
+-- =============================
+-- Consultas útiles (comentadas)
+-- =============================
 
--- 3. Select all incident types
-SELECT * FROM incident_type;
+-- SELECT * FROM app_user;
 
--- 4. Select all incident statuses
-SELECT * FROM incident_status;
+-- SELECT * FROM user_role;
 
--- 5. Select all locations
-SELECT * FROM location;
+-- SELECT * FROM incident_type;
 
--- 6. Select all incidents
-SELECT * FROM incident;
+-- SELECT * FROM incident_status;
 
--- 7. Select all incident history entries
-SELECT * FROM incident_history;
+-- SELECT * FROM location;
 
--- 8. Select all notifications
-SELECT * FROM notification;
+-- SELECT * FROM incident;
 
--- 9. Full incident details with joins
-SELECT
-    i.id,
-    i.title,
-    i.description,
-    i.priority,
-    i.report_date,
-    u.first_name || ' ' || u.last_name AS reported_by,
-    it.name AS incident_type,
-    s.name AS status
-FROM
-    incident i
-    JOIN app_user u ON i.user_id = u.id
-    JOIN incident_type it ON i.type_id = it.id
-    JOIN incident_status s ON i.status_id = s.id
-ORDER BY i.report_date DESC;
+-- SELECT * FROM incident_history;
 
---10. Incident Full Details
+-- SELECT * FROM notification;
 
--- Full incident details with complete timeline and user info
-SELECT
-    i.id AS incident_id,
-    i.title,
-    i.description,
-    i.priority,
-    i.report_date,
-    i.assigned_date,
-    i.in_progress_date,
-    i.resolved_date,
-    i.closed_date,
-    u.first_name || ' ' || u.last_name AS reported_by,
-    u.email AS user_email,
-    it.name AS incident_type,
-    s.name AS status,
-    l.latitude,
-    l.longitude,
-    l.altitude,
-    l.reference AS location_reference
-FROM
-    incident i
-    LEFT JOIN app_user u ON i.user_id = u.id
-    LEFT JOIN incident_type it ON i.type_id = it.id
-    LEFT JOIN incident_status s ON i.status_id = s.id
-    LEFT JOIN location l ON i.location_id = l.id
-ORDER BY i.report_date DESC;
+-- SELECT * FROM incident_type_admin;
 
+-- SELECT detallado de incidentes (descomentar para usar)
+-- SELECT
+--   i.id AS incident_id,
+--   i.title,
+--   i.description,
+--   i.priority,
+--   i.report_date,
+--   i.close_date,
+--   u.first_name || ' ' || u.last_name AS reported_by,
+--   u.email AS user_email,
+--   it.name AS incident_type,
+--   s.name AS status,
+--   l.latitude,
+--   l.longitude,
+--   l.altitude,
+--   l.reference AS location_reference
+-- FROM incident i
+-- LEFT JOIN app_user u ON i.user_id = u.id
+-- LEFT JOIN incident_type it ON i.type_id = it.id
+-- LEFT JOIN incident_status s ON i.status_id = s.id
+-- LEFT JOIN location l ON i.location_id = l.id
+-- ORDER BY i.report_date DESC;

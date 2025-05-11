@@ -53,6 +53,13 @@ export class IncidentController {
       // .createIncident(createIncidentDto!, user)
       .then((response) => {
         return res.status(200).json(response);
+        //  Si fue duplicado, responder con advertencia
+        /* if ("duplicado" in response && response.duplicado) {
+          return res.status(200).json(response);
+        }
+
+        //  Si no fue duplicado, se guardó normalmente
+        return res.status(200).json(response);*/
       })
       .catch((error) => {
         this.handleError(error, res);

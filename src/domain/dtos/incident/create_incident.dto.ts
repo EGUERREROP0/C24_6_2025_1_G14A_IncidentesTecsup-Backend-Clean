@@ -3,7 +3,7 @@ export class CreateincidentDto {
     public readonly title: string,
     public readonly description: string,
     public readonly image_url: string,
-    public readonly priority: "low" | "medium" | "high",
+    public readonly priority: "Alta" | "Media" | "Baja",
     public readonly type_id: number,
     public readonly location: {
       latitude: number;
@@ -23,21 +23,22 @@ export class CreateincidentDto {
     if (!image_url) return ["La imagen es requerida", undefined];
     if (!priority) return ["La prioridad es requerida", undefined];
     if (!type_id) return ["El tipo es requerido", undefined];
-    if (typeof JSON.parse(location) !== "object")
-      return ["Ubicacion invalida (No es un objeto)", undefined];
 
-    const location1 = JSON.parse(location);
+    if (typeof location !== "object" || location === null)
+      return ["Ubicacion invalida (No es un Object)", undefined];
 
-    if (!location1.latitude) return ["La latitud es requerida", undefined];
-    if (!location1.longitude) return ["La longitud es requerida", undefined];
-    if (!location1.altitude) return ["La altitud es requerida", undefined];
-    if (typeof location1.latitude !== "number")
+    //const location1 = JSON.parse(location);
+
+    if (!location.latitude) return ["La latitud es requerida", undefined];
+    if (!location.longitude) return ["La longitud es requerida", undefined];
+    if (!location.altitude) return ["La altitud es requerida", undefined];
+    if (typeof location.latitude !== "number")
       return ["La latitud no es un numero", undefined];
-    if (typeof location1.longitude !== "number")
+    if (typeof location.longitude !== "number")
       return ["La longitud no es un numero", undefined];
-    if (typeof location1.altitude !== "number")
+    if (typeof location.altitude !== "number")
       return ["La altitud no es un numero", undefined];
-    if (location1.latitude < -90 || location1.latitude > 90)
+    if (location.latitude < -90 || location.latitude > 90)
       return ["La latitud no es valida", undefined];
 
     // console.log("location1 desde el dto", location1);
@@ -49,7 +50,7 @@ export class CreateincidentDto {
         image_url,
         priority,
         type_id,
-        location1
+        location
       ),
     ];
   }
