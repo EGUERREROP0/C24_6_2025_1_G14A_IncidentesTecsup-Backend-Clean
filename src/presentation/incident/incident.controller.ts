@@ -80,7 +80,16 @@ export class IncidentController {
   };
 
   getIncidentById = (req: Request, res: Response) => {
-    res.json("Incident ---qweqwe");
+    const id = +req.params.id;
+    if (isNaN(id))
+      return res.status(400).json({ error: `El id: ${id} no es valido` });
+
+    this.incidentService
+      .getIncidentById(id)
+      .then((detail) => res.status(200).json({ detail }))
+      .catch((error) => {
+        this.handleError(error, res);
+      });
   };
 
   //!Get incident by id

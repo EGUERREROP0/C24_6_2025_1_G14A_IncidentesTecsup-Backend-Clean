@@ -12,7 +12,6 @@ export class AdminService {
     // id --> Es el IDADMIN
     const { id, incident_type_id } = asignResponsabilityAdminDto;
 
-    
     const AsignedAdmin = await IncidentTypeAdminModel.create({
       data: {
         admin_id: +id,

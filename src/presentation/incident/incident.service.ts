@@ -1,4 +1,5 @@
-import { envs } from "../../config";
+import { Console } from "console";
+import { envs, HelperSanitizar } from "../../config";
 import {
   IncidentHistoryModel,
   IncidentModel,
@@ -95,7 +96,7 @@ export class IncidentService {
     if (!result?.secure_url)
       throw CustomError.internalServer("Error subiendo imagen");
 
-   /*
+    /*
     // Verificar duplicado con FastAPI
     let duplicateCheck;
     try {
@@ -295,4 +296,44 @@ export class IncidentService {
       );
     }
   }
+
+  //Get incident by id
+  getIncidentById = async (id: number) => {
+    if (!id) throw CustomError.badRequest("Id no proporcionado");
+    try {
+      const detailIncident = await IncidentModel.findUnique({
+        where: { id },
+        include: {
+          incident_status: true,
+          incident_type: true,
+          location: true,
+          app_user_incident_assigned_admin_idToapp_user: true,
+          app_user_incident_user_idToapp_user: true,
+        },
+      });
+
+      if (!detailIncident)
+        throw CustomError.notFound(`Incidente con id ${id} no encontrado`);
+
+      const sanitizedDetailIncident = {
+        ...detailIncident,
+        app_user_incident_user_idToapp_user: HelperSanitizar.sanitizeUser(
+          detailIncident.app_user_incident_user_idToapp_user
+        ),
+        app_user_incident_assigned_admin_idToapp_user:
+          HelperSanitizar.sanitizeUser(
+            detailIncident.app_user_incident_assigned_admin_idToapp_user
+          ),
+      };
+
+      console.log(sanitizedDetailIncident.location_id?.toFixed(27));
+
+      return { detailIncident: sanitizedDetailIncident };
+    } catch (error) {
+      console.log(error);
+      throw CustomError.internalServer(
+        `Error al obtener el incidente con id ${id}`
+      );
+    }
+  };
 }

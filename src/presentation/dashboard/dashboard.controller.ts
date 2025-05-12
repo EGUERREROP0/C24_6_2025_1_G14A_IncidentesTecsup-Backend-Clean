@@ -18,7 +18,7 @@ export class DashboardController {
   };
   getTotalIncidents = (req: Request, res: Response) => {
     this.dashboardService
-      .getTotalIncidents(req, res)
+      .getTotalIncidents()
       .then((result) => {
         if (result) {
           return res.status(200).json({
@@ -38,11 +38,18 @@ export class DashboardController {
       });
   };
 
+  countIncidentsByPriority = (req: Request, res: Response) => {
+    this.dashboardService
+      .countIncidentsByPriority()
+      .then((result) => res.json({priotity: result}))
+      .catch((error) => this.handleError(error, res));
+  };
+
   exportarUsuariosExcel = async (req: Request, res: Response) => {
     try {
       const usuarios = await UserModel.findMany({
         include: {
-          user_role: true, // Asegúrate que este nombre coincida con tu relación en schema.prisma
+          user_role: true,
         },
         orderBy: {
           id: "asc",

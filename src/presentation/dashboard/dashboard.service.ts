@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import { IncidentModel } from "../../data/postgres/prisma";
+import { CustomError } from "../../domain/error";
 
 export class DashboardService {
   constructor() {}
 
-  getTotalIncidents = async (req: Request, res: Response) => {
-    
+  getTotalIncidents = async () => {
     try {
       const [
         totalIncidentes,
@@ -43,6 +43,31 @@ export class DashboardService {
       };
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  countIncidentsByPriority = async () => {
+    try {
+      const incidentsByPriorityLow = await IncidentModel.count({
+        where: { priority: "Alta" },
+      });
+      const incidentsByPriorityMedium = await IncidentModel.count({
+        where: { priority: "Media" },
+      });
+      const incidentsByPriorityHigh = await IncidentModel.count({
+        where: { priority: "Baja" },
+      });
+
+      return {
+        incidentsByPriorityLow,
+        incidentsByPriorityMedium,
+        incidentsByPriorityHigh,
+      };
+    } catch (error) {
+      console.error(error);
+      throw CustomError.internalServer(
+        "Error al contar los incidentes por prioridad"
+      );
     }
   };
 }
