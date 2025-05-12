@@ -140,21 +140,51 @@ export class IncidentService {
   }
 
   //Get all incidents
-  async getAllIncidents(paginationDto: PaginationDto) {
+  async getAllIncidents(paginationDto: PaginationDto, search: string) {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
+    const where = search?.trim()
+      ? {
+          OR: [
+            { title: { contains: search, mode: "insensitive" as const } },
+            { description: { contains: search, mode: "insensitive" as const } },
+            // { priority: { contains: search, mode: "insensitive" as const } },
+            {
+              incident_type: {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+            },
+            // {
+            //   incident_status: {
+            //     name: {
+            //       contains: search,
+            //       mode: "insensitive" as const,
+            //     },
+            //   },
+            // },
+          ],
+        }
+      : {};
+
     try {
       const [total, allIncidents] = await Promise.all([
-        IncidentModel.count(),
+        IncidentModel.count({ where }),
+
         IncidentModel.findMany({
           skip: skip,
           take: limit,
+          where,
 
           include: {
             incident_status: true,
             incident_type: true,
             location: true,
+            app_user_incident_assigned_admin_idToapp_user: true,
+            app_user_incident_user_idToapp_user: true,
           },
           orderBy: {
             report_date: "desc",
@@ -162,19 +192,21 @@ export class IncidentService {
         }),
       ]);
       // console.log(allIncidents);
+      console.log("ALLINCIDENTS", allIncidents);
       console.log("TOTAL", total);
-      /*const allIncidents = await IncidentModel.findMany({
-        skip: skip,
-        take: limit,
-        include: {
-          incident_status: true,
-          incident_type: true,
-          location: true,
-        },
-        orderBy: {
-          report_date: "desc",
-        },
-      });*/
+
+      // if (!allIncidents) return { error: "No hay incidentes" };
+
+      // const sanitizedAllIncidents = {
+      //   ...allIncidents,
+      //   app_user_incident_user_idToapp_user: HelperSanitizar.sanitizeUser(
+      //     allIncidents.app_user_incident_user_idToapp_user
+      //   ),
+      //   app_user_incident_assigned_admin_idToapp_user:
+      //     HelperSanitizar.sanitizeUser(
+      //       allIncidents.app_user_incident_assigned_admin_idToapp_user
+      //     ),
+      // };
 
       return {
         page: page,
@@ -312,21 +344,16 @@ export class IncidentService {
         },
       });
 
-      if (!detailIncident)
-        throw CustomError.notFound(`Incidente con id ${id} no encontrado`);
-
       const sanitizedDetailIncident = {
         ...detailIncident,
         app_user_incident_user_idToapp_user: HelperSanitizar.sanitizeUser(
-          detailIncident.app_user_incident_user_idToapp_user
+          detailIncident?.app_user_incident_user_idToapp_user
         ),
         app_user_incident_assigned_admin_idToapp_user:
           HelperSanitizar.sanitizeUser(
-            detailIncident.app_user_incident_assigned_admin_idToapp_user
+            detailIncident?.app_user_incident_assigned_admin_idToapp_user
           ),
       };
-
-      console.log(sanitizedDetailIncident.location_id?.toFixed(27));
 
       return { detailIncident: sanitizedDetailIncident };
     } catch (error) {

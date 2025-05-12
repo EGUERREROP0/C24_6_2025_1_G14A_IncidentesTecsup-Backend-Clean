@@ -15,6 +15,7 @@ export class AuthRoutes {
     //Routes of controller
     router.post("/login", authController.loginUser);
     router.post("/register", authController.registerUser);
+    router.post("/register-admin", authController.registerAdmin);
 
     //Validate token with Email
     router.get("/validate-email/:token", authController.ValidateEmail);

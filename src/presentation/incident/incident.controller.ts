@@ -69,12 +69,14 @@ export class IncidentController {
   //!Get all incidents
   getAllIncidents = async (req: Request, res: Response) => {
     //Get query params pagination
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, search = "" } = req.query;
     const [error, paginationDto] = PaginationDto.create(+page, +limit);
     if (error) return res.status(400).json({ error });
+    if (search && typeof search !== "string")
+      return res.status(400).json({ error: "El search debe ser un string" });
 
     this.incidentService
-      .getAllIncidents(paginationDto!)
+      .getAllIncidents(paginationDto!, search as string)
       .then((response) => res.status(200).json(response))
       .catch((error) => this.handleError(error, res));
   };
