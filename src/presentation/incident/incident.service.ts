@@ -11,6 +11,7 @@ import { IncidentEntity } from "../../domain/entities/incident.entity";
 import { CustomError } from "../../domain/error";
 import { CloudinaryService } from "../../lib/claudinary.service";
 import axios from "axios";
+import { priority_enum, Prisma } from "@prisma/client";
 
 export class IncidentService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
@@ -25,7 +26,7 @@ export class IncidentService {
     if (!responsibleAdmin)
       throw CustomError.notFound("No hay admin responsable asignado");
 
-    console.log("DTO", createincidentDto.location);
+    //console.log("DTO", createincidentDto.location);
     try {
       const location = await LocationModel.create({
         data: {
@@ -39,7 +40,7 @@ export class IncidentService {
 
       const incident = await IncidentModel.create({
         data: {
-          title: createincidentDto.title,
+          //title: createincidentDto.title,
           description: createincidentDto.description,
           image_url: createincidentDto.image_url,
           priority: createincidentDto.priority,
@@ -61,7 +62,7 @@ export class IncidentService {
 
       return {
         incident: IncidentEntity.fromObject(incident),
-        message: "Incidente creado correctamente",
+        message: "Incidente reportado con exito",
       };
     } catch (error) {
       console.log(error);
@@ -140,35 +141,44 @@ export class IncidentService {
   }
 
   //Get all incidents
-  async getAllIncidents(paginationDto: PaginationDto, search: string) {
+  async getAllIncidents(
+    paginationDto: PaginationDto,
+    search: string,
+    filters?: {
+      priority?: "Alta" | "Media" | "Baja";
+      status_id?: number;
+      type_id?: number;
+    }
+  ) {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const where = search?.trim()
-      ? {
-          OR: [
-            { title: { contains: search, mode: "insensitive" as const } },
-            { description: { contains: search, mode: "insensitive" as const } },
-            // { priority: { contains: search, mode: "insensitive" as const } },
-            {
-              incident_type: {
-                name: {
-                  contains: search,
-                  mode: "insensitive" as const,
+    const where: Prisma.incidentWhereInput = {
+      ...(search?.trim()
+        ? {
+            OR: [
+              { title: { contains: search, mode: "insensitive" as const } },
+              {
+                description: { contains: search, mode: "insensitive" as const },
+              },
+              // { priority: { contains: search, mode: "insensitive" as const } },
+              {
+                incident_type: {
+                  name: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
                 },
               },
-            },
-            // {
-            //   incident_status: {
-            //     name: {
-            //       contains: search,
-            //       mode: "insensitive" as const,
-            //     },
-            //   },
-            // },
-          ],
-        }
-      : {};
+            ],
+          }
+        : {}),
+      ...(filters?.priority && { priority: filters.priority }),
+      ...(filters?.status_id && { status_id: filters.status_id }),
+      ...(filters?.type_id && { type_id: filters.type_id }),
+    };
+
+    console.log("WHERE", where);
 
     try {
       const [total, allIncidents] = await Promise.all([
@@ -191,9 +201,6 @@ export class IncidentService {
           },
         }),
       ]);
-      // console.log(allIncidents);
-      console.log("ALLINCIDENTS", allIncidents);
-      console.log("TOTAL", total);
 
       // if (!allIncidents) return { error: "No hay incidentes" };
 

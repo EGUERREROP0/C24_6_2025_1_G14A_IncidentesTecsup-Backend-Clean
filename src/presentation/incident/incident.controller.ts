@@ -24,29 +24,6 @@ export class IncidentController {
   createIncident = async (req: Request, res: Response) => {
     const user = req.body.user;
     const file = (req as any).files?.image;
-    // console.log("BODY:", req.body);
-    // console.log("FILES:", file);
-
-    /*if (!file) return res.status(400).json({ error: "No image provided" });
-
-    //Subir imagen a cloudinary
-    const result = await this.cloudinaryService.uploadImage({
-      fileBuffer: file.data,
-      folder: "incidents",
-      fileName: `incident_${Date.now()}`,
-      resourceType: "image",
-    });
-
-    console.log(result);
-    if (!result?.secure_url)
-      return res.status(500).json({ error: "Error subiendo imagen" });
-
-    //?validate dto
-    const [error, createIncidentDto] = CreateincidentDto.create({
-      ...req.body,
-      image_url: result.secure_url,
-    });
-    if (error) return res.status(400).json({ error });*/
 
     this.incidentService
       .handleCreateIncident(req.body, user, file)
@@ -69,14 +46,32 @@ export class IncidentController {
   //!Get all incidents
   getAllIncidents = async (req: Request, res: Response) => {
     //Get query params pagination
-    const { page = 1, limit = 10, search = "" } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      priority,
+      status_id,
+      type_id,
+    } = req.query;
+
     const [error, paginationDto] = PaginationDto.create(+page, +limit);
     if (error) return res.status(400).json({ error });
     if (search && typeof search !== "string")
       return res.status(400).json({ error: "El search debe ser un string" });
 
+    const allowedPriorities = ["Alta", "Media", "Baja"] as const;
+    const filters = {
+      priority: allowedPriorities.includes(priority as any)
+        ? (priority as (typeof allowedPriorities)[number])
+        : undefined,
+      // priority: typeof priority === "string" ? priority : undefined,
+      status_id: status_id ? +status_id : undefined,
+      type_id: type_id ? +type_id : undefined,
+    };
+
     this.incidentService
-      .getAllIncidents(paginationDto!, search as string)
+      .getAllIncidents(paginationDto!, search as string, filters /*as object*/)
       .then((response) => res.status(200).json(response))
       .catch((error) => this.handleError(error, res));
   };

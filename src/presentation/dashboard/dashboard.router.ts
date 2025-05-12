@@ -12,8 +12,11 @@ export class DashboardRouter {
     const dashboardController = new DashboardController(dashboardService);
 
     router.get("/resumen", dashboardController.getTotalIncidents);
-    router.get("/resumen/bypriority", dashboardController.countIncidentsByPriority);
-    router.get("/resumen/excel", dashboardController.exportarUsuariosExcel);
+    router.get(
+      "/incdents-by-priority",
+      dashboardController.countIncidentsByPriority
+    );
+    router.get("/users-to-excel", dashboardController.exportUsersToExcel);
 
     return router;
   }

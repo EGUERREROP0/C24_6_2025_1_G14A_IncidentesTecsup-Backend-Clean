@@ -41,61 +41,16 @@ export class DashboardController {
   countIncidentsByPriority = (req: Request, res: Response) => {
     this.dashboardService
       .countIncidentsByPriority()
-      .then((result) => res.json({priotity: result}))
+      .then((result) => res.json({ priotity: result }))
       .catch((error) => this.handleError(error, res));
   };
 
-  exportarUsuariosExcel = async (req: Request, res: Response) => {
-    try {
-      const usuarios = await UserModel.findMany({
-        include: {
-          user_role: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
+  exportUsersToExcel = async (req: Request, res: Response) => {
+    this.dashboardService
+      .exportUsersToExcel(req, res)
+      .then((workbook) => {})
+      .catch((error) => {
+        this.handleError(error, res);
       });
-
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Usuarios");
-
-      // Definir columnas del Excel
-      worksheet.columns = [
-        { header: "ID", key: "id", width: 10 },
-        { header: "Nombre", key: "first_name", width: 20 },
-        { header: "Apellido", key: "last_name", width: 20 },
-        { header: "Email", key: "email", width: 30 },
-        { header: "Rol", key: "role", width: 20 },
-        { header: "Activo", key: "is_active", width: 10 },
-      ];
-
-      // Agregar filas
-      usuarios.forEach((user) => {
-        worksheet.addRow({
-          id: user.id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          role: user.user_role?.name || "Sin rol",
-          is_active: user.is_active ? "Sí" : "No",
-        });
-      });
-
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      );
-      res.setHeader(
-        "Content-Disposition",
-        "attachment; filename=usuarios.xlsx"
-      );
-
-      // Es MUY IMPORTANTE usar await aquí
-      await workbook.xlsx.write(res);
-      res.end();
-    } catch (error) {
-      console.error("Error al exportar usuarios a Excel:", error);
-      res.status(500).json({ message: "Error al generar el archivo Excel" });
-    }
   };
 }

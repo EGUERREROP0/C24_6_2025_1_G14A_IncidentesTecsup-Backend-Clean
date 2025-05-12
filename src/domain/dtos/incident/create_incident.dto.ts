@@ -1,6 +1,6 @@
 export class CreateincidentDto {
   constructor(
-    public readonly title: string,
+    //public readonly title: string,
     public readonly description: string,
     public readonly image_url: string,
     public readonly priority: "Alta" | "Media" | "Baja",
@@ -18,7 +18,7 @@ export class CreateincidentDto {
     // console.log(location)
     // console.log("location", JSON.parse(location));
 
-    if (!title) return ["El titulo es requerido", undefined];
+    //if (!title) return ["El titulo es requerido", undefined];
     if (!description) return ["La descripcion es requerida", undefined];
     if (!image_url) return ["La imagen es requerida", undefined];
     if (!priority) return ["La prioridad es requerida", undefined];
@@ -45,7 +45,7 @@ export class CreateincidentDto {
     return [
       undefined,
       new CreateincidentDto(
-        title,
+       // title,
         description,
         image_url,
         priority,

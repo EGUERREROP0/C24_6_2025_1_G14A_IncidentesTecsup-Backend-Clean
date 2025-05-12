@@ -97,16 +97,11 @@ export class AuthService {
         role_id: newAdmin.role_id,
       });
       if (!token) throw CustomError.internalServer("Error el el servidor");
-      console.log({
-        user: userEntity,
-        token: token,
-        role: userEntity.user_role,
-      });
-
+      
       return { user: userEntity, token: token };
     } catch (error) {
       console.log(error);
-      throw CustomError.internalServer(`${error}`);
+      throw CustomError.internalServer("Error en el servidor");
     }
   }
 
