@@ -12,6 +12,11 @@ export class typeIncidentRoutes {
       typeIncidentService
     );
 
+    router.post(
+      "/",
+      // [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      typeIncidentController.createTypeIncident
+    );
     router.get(
       "/",
       [AuthMiddleware.validateJWT],

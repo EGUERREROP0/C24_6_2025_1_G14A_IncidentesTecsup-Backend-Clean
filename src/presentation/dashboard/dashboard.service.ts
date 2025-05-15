@@ -17,21 +17,11 @@ export class DashboardService {
         incidentByStatusReopened,
       ] = await Promise.all([
         IncidentModel.count(),
-        IncidentModel.count({
-          where: { status_id: 1 },
-        }),
-        IncidentModel.count({
-          where: { status_id: 2 },
-        }),
-        IncidentModel.count({
-          where: { status_id: 3 },
-        }),
-        IncidentModel.count({
-          where: { status_id: 4 },
-        }),
-        IncidentModel.count({
-          where: { status_id: 5 },
-        }),
+        IncidentModel.count({ where: { status_id: 1 } }),
+        IncidentModel.count({ where: { status_id: 2 } }),
+        IncidentModel.count({ where: { status_id: 3 } }),
+        IncidentModel.count({ where: { status_id: 4 } }),
+        IncidentModel.count({ where: { status_id: 5 } }),
       ]);
 
       return {
@@ -49,16 +39,17 @@ export class DashboardService {
 
   countIncidentsByPriority = async () => {
     try {
-      const incidentsByPriorityLow = await IncidentModel.count({
-        where: { priority: "Alta" },
-      });
-      const incidentsByPriorityMedium = await IncidentModel.count({
-        where: { priority: "Media" },
-      });
-      const incidentsByPriorityHigh = await IncidentModel.count({
-        where: { priority: "Baja" },
-      });
+      const [
+        incidentsByPriorityHigh,
+        incidentsByPriorityMedium,
+        incidentsByPriorityLow,
+      ] = await Promise.all([
+        IncidentModel.count({ where: { priority: "Alta" } }),
+        IncidentModel.count({ where: { priority: "Media" } }),
+        IncidentModel.count({ where: { priority: "Baja" } }),
+      ]);
 
+      // Devolver los resultados
       return {
         incidentsByPriorityLow,
         incidentsByPriorityMedium,

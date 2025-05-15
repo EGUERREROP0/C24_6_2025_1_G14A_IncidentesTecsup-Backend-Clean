@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { TypeIncidentService } from "./type-incident.service";
 import { CustomError } from "../../domain/error";
+import { TypeIncidentDto } from "../../domain/dtos/type-incident/create-type-incdent.dto";
 
 export class TypeIncidentController {
   constructor(private typeIncidentService: TypeIncidentService) {}
@@ -14,6 +15,23 @@ export class TypeIncidentController {
     console.log(`${error}`);
     return res.status(500).json({ error: "Internal server Error" });
   };
+
+  createTypeIncident = (req:Request, res:Response)=>{
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: "El nombre es requerido" });
+    }
+
+    const [error, typeIncidentDto] =  TypeIncidentDto.create(name);
+    
+    if(error) return res.status(400).json({ error });
+    
+
+    this.typeIncidentService
+      .createTypeIncident(name)
+      .then((typeIncident) => res.status(201).json(typeIncident))
+      .catch((error) => this.handleError(error, res));
+  }
 
   getAllTypeIncidents = async (req: Request, res: Response) => {
     this.typeIncidentService
@@ -32,12 +50,10 @@ export class TypeIncidentController {
     this.typeIncidentService
       .deleteTypeIncident(id)
       .then((deleted) =>
-        res
-          .status(200)
-          .json({
-            message: `Tipo de incidente ${deleted.name} eliminado`,
-            deleted,
-          })
+        res.status(200).json({
+          message: `Tipo de incidente ${deleted.name} eliminado`,
+          deleted,
+        })
       )
       .catch((error) => this.handleError(error, res));
   };

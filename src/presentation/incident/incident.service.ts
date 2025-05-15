@@ -1,5 +1,5 @@
 import { Console } from "console";
-import { envs, HelperSanitizar } from "../../config";
+import { envs, FormatTime, HelperSanitizar } from "../../config";
 import {
   IncidentHistoryModel,
   IncidentModel,
@@ -195,6 +195,17 @@ export class IncidentService {
             location: true,
             app_user_incident_assigned_admin_idToapp_user: true,
             app_user_incident_user_idToapp_user: true,
+            incident_history: {
+              include: {
+                app_user: {
+                  select: {
+                    first_name: true,
+                    last_name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: {
             report_date: "desc",
@@ -215,6 +226,21 @@ export class IncidentService {
       //     ),
       // };
 
+      const incidentsWithResponseTime = allIncidents.map((incident) => {
+        let responseTime = null;
+        if (incident.report_date && incident.close_date) {
+          responseTime = FormatTime.formatResponseTime(
+            incident.report_date,
+            incident.close_date
+          );
+        }
+
+        return {
+          ...incident,
+          response_time: responseTime,
+        };
+      });
+
       return {
         page: page,
         limit: limit,
@@ -225,7 +251,7 @@ export class IncidentService {
             : `/api/v1/incident?page=${page + 1}&limit=${limit}`,
         prevTick:
           page > 1 ? `api/v1/incident?page=${page - 1}&limit=${limit}` : null,
-        allIncidents,
+        allIncidents: incidentsWithResponseTime,
       };
     } catch (error) {
       throw CustomError.internalServer(`'Error getting incidents': ${error}`);
@@ -301,9 +327,14 @@ export class IncidentService {
 
       const previousStatusName = incident.status_id;
 
+      const shouldSetCloseDate = [3, 4].includes(newStatusId);
+
       const updatedIncident = await IncidentModel.update({
         where: { id },
-        data: { status_id: newStatusId },
+        data: {
+          status_id: newStatusId,
+          close_date: shouldSetCloseDate ? new Date() : undefined,
+        },
         include: {
           incident_status: true,
           incident_type: true,

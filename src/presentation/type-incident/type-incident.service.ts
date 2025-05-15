@@ -17,8 +17,7 @@ export class TypeIncidentService {
     }
   }
 
-  deleteTypeIncident = async (id:number) => {
-
+  deleteTypeIncident = async (id: number) => {
     try {
       const typeIncident = await IncidentTypeModel.delete({
         where: { id },
@@ -31,7 +30,19 @@ export class TypeIncidentService {
       );
     }
   };
+
+  createTypeIncident = async (name: string) => {
+    try {
+      const typeIncident = await IncidentTypeModel.create({
+        data: { name },
+      });
+      return {
+        typeIncident,
+        message: `Tipo de incidente ${typeIncident.name} creado`,
+      };
+    } catch (error) {
+      console.error("Error al crear el tipo de incidente:", error);
+      throw CustomError.internalServer("Error al crear el tipo de incidente: ");
+    }
+  };
 }
-
-
-

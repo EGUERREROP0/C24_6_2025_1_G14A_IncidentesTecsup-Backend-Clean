@@ -24,7 +24,6 @@ export class UserService {
                 },
               },
             },
-            
           ],
         }
       : {};
@@ -41,6 +40,10 @@ export class UserService {
         }),
       ]);
 
+      const allusers = users.map(({ password, ...restUser }) => restUser);
+
+      console.log(allusers);
+
       return {
         skip,
         page,
@@ -54,7 +57,7 @@ export class UserService {
           page <= 1
             ? null
             : `/api/user?page=${page - 1}&limit=${limit}&search=${search}`,
-        users: users.map((user) => UserEntity.fromObject(user)),
+        users: allusers /*.map((user) => UserEntity.fromObject(user)),*/,
       };
     } catch (error) {
       console.error("Error fetching users:", error);
