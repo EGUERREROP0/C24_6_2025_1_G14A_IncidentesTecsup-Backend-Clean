@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { DashboardController } from "./dashboard.controller";
 import { DashboardService } from "./dashboard.service";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
 
 export class DashboardRouter {
   constructor() {}
@@ -11,12 +12,27 @@ export class DashboardRouter {
     const dashboardService = new DashboardService();
     const dashboardController = new DashboardController(dashboardService);
 
-    router.get("/resumen", dashboardController.getTotalIncidents);
+    router.get(
+      "/resumen",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      dashboardController.getTotalIncidents
+    );
     router.get(
       "/incdents-by-priority",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       dashboardController.countIncidentsByPriority
     );
-    router.get("/users-to-excel", dashboardController.exportUsersToExcel);
+    router.get(
+      "/admin-incident-stats",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
+      dashboardController.getAdminIncidentStats
+    );
+
+    router.get(
+      "/users-to-excel",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      dashboardController.exportUsersToExcel
+    );
 
     return router;
   }

@@ -53,4 +53,17 @@ export class DashboardController {
         this.handleError(error, res);
       });
   };
+
+  //* ADMINS SECONDARIES DATA
+  getAdminIncidentStats = (req: Request, res: Response) => {
+    const id = req.body.user.id;
+
+    console.log(id);
+    this.dashboardService
+      .getAdminIncidentStats(+id)
+      .then((result) => res.status(200).json(result))
+      .catch((error) => {
+        this.handleError(error, res);
+      });
+  };
 }
