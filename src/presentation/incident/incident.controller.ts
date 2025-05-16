@@ -3,6 +3,8 @@ import { CustomError } from "../../domain/error";
 import { CreateincidentDto, PaginationDto } from "../../domain";
 import { IncidentService } from "./incident.service";
 import { CloudinaryService } from "../../lib/claudinary.service";
+import { stat } from "fs";
+import { UpdateStatusIncidentDto } from "../../domain/dtos/incident/update_status-incident.dto";
 
 export class IncidentController {
   constructor(
@@ -132,14 +134,27 @@ export class IncidentController {
   //! Update incident by status
   updateIncidentStatus = (req: Request, res: Response) => {
     const id = +req.params.id;
-    const { status_id } = req.body;
+    const { status_id, coment } = req.body;
 
     if (isNaN(id)) return res.status(400).json({ error: "El id no es válido" });
     if (!status_id)
       return res.status(400).json({ error: "El estado es requerido" });
 
+    const [error, updateStatusIncidentDto] = UpdateStatusIncidentDto.create({
+      status_id,
+      coment,
+    });
+
+    if (error) return res.status(400).json({ error });
+
+
     this.incidentService
-      .updateIncidentStatus(id, +status_id, req.body.user)
+      .updateIncidentStatus(
+        id,
+        +status_id,
+        req.body.user,
+        updateStatusIncidentDto?.coment
+      )
       .then((response) => res.status(200).json(response))
       .catch((error) => this.handleError(error, res));
   };

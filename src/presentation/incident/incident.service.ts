@@ -315,7 +315,8 @@ export class IncidentService {
   async updateIncidentStatus(
     id: number,
     newStatusId: number,
-    user: UserEntity
+    user: UserEntity,
+    comentary?: string
   ) {
     try {
       const incident = await IncidentModel.findUnique({
@@ -327,6 +328,7 @@ export class IncidentService {
 
       const previousStatusName = incident.status_id;
 
+      // const previousStatusName = incident.incident_status?.name;
       const shouldSetCloseDate = [3, 4].includes(newStatusId);
 
       const updatedIncident = await IncidentModel.update({
@@ -342,14 +344,17 @@ export class IncidentService {
         },
       });
 
+      const generatedComment = comentary
+        ? `${comentary} - Atendido por: ${user.first_name} ${user.last_name}`
+        : `El estado del incidente fue cambiado de ${previousStatusName} a ${updatedIncident.incident_status?.name} por ${user.first_name}`;
+
       //Guardar el incidente en el historial
       await IncidentHistoryModel.create({
         data: {
           incident_id: id,
           previous_status: previousStatusName?.toString(),
           new_status: newStatusId.toString(),
-          comment: `El estado del incidente fue cambiado de 
-          ${incident.incident_status?.name} a ${updatedIncident.incident_status?.name} por ${user.first_name}`,
+          comment: generatedComment,
           modified_by: user.id,
           change_date: new Date(),
         },
