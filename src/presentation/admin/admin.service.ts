@@ -30,7 +30,24 @@ export class AdminService {
     try {
       const incidents = await IncidentModel.findMany({
         where: { assigned_admin_id: adminId },
-        include: { location: true, incident_type: true },
+        include: {
+          location: true,
+          incident_type: true,
+          incident_status: true,
+          app_user_incident_assigned_admin_idToapp_user: true,
+          app_user_incident_user_idToapp_user: true,
+          incident_history: {
+            include: {
+              app_user: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       return { incidents };
