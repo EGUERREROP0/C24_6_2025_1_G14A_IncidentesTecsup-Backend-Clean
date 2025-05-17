@@ -326,9 +326,10 @@ export class IncidentService {
       if (!incident)
         throw CustomError.notFound(`Incidente con id ${id} no encontrado`);
 
-      const previousStatusName = incident.status_id;
+      // const previousStatusName = incident.status_id;
 
-      // const previousStatusName = incident.incident_status?.name;
+      const previousStatusName = incident.incident_status?.name;
+      
       const shouldSetCloseDate = [3, 4].includes(newStatusId);
 
       const updatedIncident = await IncidentModel.update({
@@ -344,6 +345,9 @@ export class IncidentService {
         },
       });
 
+      //Nombre de nuevo estado
+      const newStatusName = updatedIncident.incident_status?.name;
+
       const generatedComment = comentary
         ? `${comentary} - Atendido por: ${user.first_name} ${user.last_name}`
         : `El estado del incidente fue cambiado de ${previousStatusName} a ${updatedIncident.incident_status?.name} por ${user.first_name}`;
@@ -353,7 +357,7 @@ export class IncidentService {
         data: {
           incident_id: id,
           previous_status: previousStatusName?.toString(),
-          new_status: newStatusId.toString(),
+          new_status: newStatusName?.toString(),
           comment: generatedComment,
           modified_by: user.id,
           change_date: new Date(),
@@ -384,6 +388,17 @@ export class IncidentService {
           location: true,
           app_user_incident_assigned_admin_idToapp_user: true,
           app_user_incident_user_idToapp_user: true,
+          incident_history: {
+            include: {
+              app_user: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                },
+              },
+            },
+          },
         },
       });
 

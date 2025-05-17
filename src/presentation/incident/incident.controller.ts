@@ -85,7 +85,7 @@ export class IncidentController {
 
     this.incidentService
       .getIncidentById(id)
-      .then((detail) => res.status(200).json({ detail }))
+      .then((detail) => res.status(200).json( detail ))
       .catch((error) => {
         this.handleError(error, res);
       });
