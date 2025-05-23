@@ -146,29 +146,30 @@ VALUES ('Infraestructura'),
 
 -- Ejemplo de actualización de roles y estados
 UPDATE app_user SET role_id = 3 WHERE id = 5;
--- UPDATE incident SET status_id = 2 WHERE id = 46;
+
+UPDATE incident SET status_id = 5 WHERE id = 4;
 
 -- =============================
 -- Consultas útiles (comentadas)
 -- =============================
 
--- SELECT * FROM app_user;
+SELECT * FROM app_user;
 
--- SELECT * FROM user_role;
+SELECT * FROM user_role;
 
--- SELECT * FROM incident_type;
+SELECT * FROM incident_type;
 
--- SELECT * FROM incident_status;
+SELECT * FROM incident_status;
 
--- SELECT * FROM location;
+SELECT * FROM location;
 
--- SELECT * FROM incident;
+SELECT * FROM incident;
 
--- SELECT * FROM incident_history;
+SELECT * FROM incident_history;
 
--- SELECT * FROM notification;
+SELECT * FROM notification;
 
--- SELECT * FROM incident_type_admin;
+SELECT * FROM incident_type_admin;
 
 -- SELECT detallado de incidentes (descomentar para usar)
 -- SELECT
