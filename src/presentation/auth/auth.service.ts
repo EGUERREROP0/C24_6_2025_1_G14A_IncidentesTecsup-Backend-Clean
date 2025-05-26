@@ -121,6 +121,13 @@ export class AuthService {
     if (!isMatch) throw CustomError.badRequest("El password es incorrecto!");
 
     try {
+      // GUARDAR EL TOKEN FCM SI ESTÁ PRESENTE
+      if (loginUserDto.fcm_token) {
+        await UserModel.update({
+          where: { id: user.id },
+          data: { fcm_token: loginUserDto.fcm_token },
+        });
+      }
       //Use Our Entity
       const { password, ...userEntity } = UserEntity.fromObject(user);
       // const { password, ...userEntity } = user;

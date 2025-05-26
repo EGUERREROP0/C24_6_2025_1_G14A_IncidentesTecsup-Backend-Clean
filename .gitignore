@@ -1,9 +1,14 @@
 .env
+.
+
 
 node_modules/
 /postgres
 dist/
 build/
 coverage/
+
+
+firebase/firebase-service-account.json
 
 

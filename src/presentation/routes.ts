@@ -7,6 +7,7 @@ import { LocationRoutes } from "./location/location.routes";
 import { AdminRoutes } from "./admin/admin.routes";
 import { IncidentStatusRoutes } from "./incident_status/incident-status.routes";
 import { DashboardRouter } from "./dashboard/dashboard.router";
+import { NotificationRoutes } from "./notification/notification.routes";
 
 export class AppRoutes {
   public static get routes(): Router {
@@ -26,6 +27,9 @@ export class AppRoutes {
 
     router.use(`${prefix}/incident-status`, IncidentStatusRoutes.routes);
     router.use(`${prefix}/dashboard`, DashboardRouter.routes);
+
+    // Notificaciones
+    router.use(`${prefix}/notification`, NotificationRoutes.routes);
 
     return router;
   }

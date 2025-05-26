@@ -1,3 +1,4 @@
+import { notification } from "./../../../node_modules/.prisma/client/index.d";
 import { Console } from "console";
 import { envs, FormatTime, HelperSanitizar } from "../../config";
 import {
@@ -5,6 +6,8 @@ import {
   IncidentModel,
   IncidentTypeAdminModel,
   LocationModel,
+  NotificationModel,
+  UserModel,
 } from "../../data/postgres/prisma";
 import { CreateincidentDto, PaginationDto, UserEntity } from "../../domain";
 import { IncidentEntity } from "../../domain/entities/incident.entity";
@@ -12,8 +15,11 @@ import { CustomError } from "../../domain/error";
 import { CloudinaryService } from "../../lib/claudinary.service";
 import axios from "axios";
 import { priority_enum, Prisma } from "@prisma/client";
+import { NotificationService } from "../../lib/notifications";
 
 export class IncidentService {
+  private readonly notificationService = new NotificationService();
+
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   async createIncident(createincidentDto: CreateincidentDto, user: UserEntity) {
@@ -59,6 +65,38 @@ export class IncidentService {
       });
 
       console.log("INCIDENT", incident);
+
+      // Obtener info del usuario y admin
+      const [reportUser, assignedAdmin] = await Promise.all([
+        UserModel.findUnique({ where: { id: user.id } }),
+        UserModel.findUnique({ where: { id: responsibleAdmin.admin_id } }),
+      ]);
+
+      // Notificar al usuario que reportó el incidente
+      if (reportUser?.fcm_token) {
+        await this.notificationService.sendPushNotification({
+          token: reportUser.fcm_token,
+          title: "Tu incidente fue registrado",
+          body: `Descripción: ${incident.description}`,
+          imageUrl: incident.image_url ?? undefined,
+          data: {
+            incidentId: String(incident.id),
+          },
+        });
+      }
+
+      // Notificar al admin responsable
+      if (assignedAdmin?.fcm_token) {
+        await this.notificationService.sendPushNotification({
+          token: assignedAdmin.fcm_token,
+          title: "Nuevo incidente asignado",
+          body: `Prioridad: ${incident.priority}. Atiende cuanto antes.`,
+          imageUrl: incident.image_url ?? undefined,
+          data: {
+            incidentId: String(incident.id),
+          },
+        });
+      }
 
       return {
         incident: IncidentEntity.fromObject(incident),
@@ -329,7 +367,7 @@ export class IncidentService {
       // const previousStatusName = incident.status_id;
 
       const previousStatusName = incident.incident_status?.name;
-      
+
       const shouldSetCloseDate = [3, 4].includes(newStatusId);
 
       const updatedIncident = await IncidentModel.update({
@@ -363,6 +401,40 @@ export class IncidentService {
           change_date: new Date(),
         },
       });
+
+      if (!incident.user_id) {
+        throw CustomError.internalServer(
+          "El incidente no tiene un usuario asignado"
+        );
+      }
+
+      // Obtener info del usuario y admin
+      const reportUser = await UserModel.findUnique({
+        where: { id: incident.user_id },
+      });
+
+      // Notificar al usuario que reportó el incidente
+      if (reportUser?.fcm_token) {
+        await this.notificationService.sendPushNotification({
+          token: reportUser.fcm_token,
+          title: `Hola ${reportUser.first_name}, el estado de tu incidente ha cambiado`,
+          body: `Descripción: ${incident.description}`,
+          imageUrl: incident.image_url ?? undefined,
+          data: {
+            incidentId: String(incident.id),
+          },
+        });
+
+        // REGISTRAR EN LA TABLA notification
+        await NotificationModel.create({
+          data: {
+            sender_id: user.id, // quien hizo el cambio (admin)
+            receiver_id: reportUser?.id, // quien reportó el incidente
+            message: `El estado de tu incidente ha cambiado a '${updatedIncident.incident_status?.name}'.`,
+            incident_id: incident.id,
+          },
+        });
+      }
 
       return {
         message: "Estado del incidente actualizado correctamente",
