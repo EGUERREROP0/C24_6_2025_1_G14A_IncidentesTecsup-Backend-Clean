@@ -158,4 +158,16 @@ export class IncidentController {
       .then((response) => res.status(200).json(response))
       .catch((error) => this.handleError(error, res));
   };
+
+  //! Incidentes by status
+  getIncidentsByStatus = (req: Request, res: Response) => {
+    const status_id = +req.params.status_id;
+    if (isNaN(status_id))
+      return res.status(400).json({ error: "El id no es válido" });
+
+    // this.incidentService
+    //   .getIncidentsByStatus(status_id)
+    //   .then((response) => res.status(200).json(response))
+    //   .catch((error) => this.handleError(error, res));
+  };
 }

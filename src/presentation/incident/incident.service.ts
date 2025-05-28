@@ -135,8 +135,7 @@ export class IncidentService {
     if (!result?.secure_url)
       throw CustomError.internalServer("Error subiendo imagen");
 
-    /*
-    // Verificar duplicado con FastAPI
+    //! Verificar duplicado con FastAPI
     let duplicateCheck;
     try {
       duplicateCheck = await axios.post(envs.API_OPENIA, {
@@ -157,6 +156,14 @@ export class IncidentService {
       let score = duplicateCheck.data.score * 100;
       let whatTime = duplicateCheck.data.incidente_sugerido.hace_tiempo;
 
+      console.log({
+        duplicado: true,
+        message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
+          score
+        )}%`,
+        sugerido: duplicateCheck.data.incidente_sugerido,
+        score: duplicateCheck.data.score,
+      });
       return {
         duplicado: true,
         message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
@@ -165,8 +172,10 @@ export class IncidentService {
         sugerido: duplicateCheck.data.incidente_sugerido,
         score: duplicateCheck.data.score,
       };
+
+     
     }
-    //Codigo nuevo 92 - 107*/
+    //Codigo nuevo 139 - 169
 
     // Validar DTO
     const [error, createIncidentDto] = CreateincidentDto.create({
@@ -307,6 +316,21 @@ export class IncidentService {
           incident_status: true,
           incident_type: true,
           location: true,
+          incident_history: true,
+          app_user_incident_assigned_admin_idToapp_user: {
+            select: {
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
+          app_user_incident_user_idToapp_user: {
+            select: {
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
         },
         orderBy: {
           report_date: "desc",

@@ -21,4 +21,9 @@ export const envs = {
   CLOUDINARY_API_SECRET: env.get("CLOUDINARY_API_SECRET").required().asString(),
 
   API_OPENIA: env.get("API_OPENIA").required().asString(),
+  
+  //CONFIG FIREBASE
+  FIREBASE_CONFIG_B64: env.get("FIREBASE_CONFIG_B64").required().asString(),
+
+
 };
