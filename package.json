@@ -7,7 +7,7 @@
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && node dist/app.js",
     "prisma:migrate": "prisma db pull",
-    "render-build": "prisma generate && prisma migrate deploy && npm run build"
+    "render-build": "prisma generate && prisma db push && npm run build"
   },
   "keywords": [],
   "author": "",
