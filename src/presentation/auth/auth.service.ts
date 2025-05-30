@@ -1,11 +1,13 @@
 import { IncidentTypeAdminModel, UserModel } from "../../data/postgres/prisma";
 import { RegisterUserDto, UserEntity, LoginUserDto } from "../../domain";
 import { CustomError } from "../../domain/error";
-import { Bcrypt, Jwt } from "../../config";
+import { Bcrypt, envs, Jwt } from "../../config";
 import { RegisterAdminDto } from "../../domain/dtos/auth/register-admin.dto";
+import { EmailService } from "../../lib/email.service";
+import { env } from "process";
 
 export class AuthService {
-  constructor() {}
+  constructor(private readonly emailService:EmailService) {}
 
   async registerUser(registerUserDto: RegisterUserDto) {
     const { email } = registerUserDto;
@@ -29,6 +31,8 @@ export class AuthService {
       });
 
       // console.log({ user });
+      //?Email confirmado
+      this.sendEmailValidationLink(user.email)
 
       //JWT --> Mantener autenticazion
 
@@ -116,6 +120,13 @@ export class AuthService {
     if (!user.password)
       throw CustomError.badRequest("El password no esta definido");
 
+    //? Validar si el usurio confirmó su email
+    if (!user.email_validated) {
+      throw CustomError.badRequest(
+        "El email no ha sido validado, por favor revisa tu bandeja de entrada"
+      );
+    }
+
     const isMatch = Bcrypt.compare(loginUserDto.password, user.password);
 
     if (!isMatch) throw CustomError.badRequest("El password es incorrecto!");
@@ -144,5 +155,73 @@ export class AuthService {
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
+  }
+
+
+  private sendEmailValidationLink= async(email: string) =>{
+    const token = await Jwt.generateToken({ email, duration: "1h" });
+
+    if (!token) throw CustomError.internalServer("Error al generar el token");
+    const link = `${envs.API_URL}/auth/validate-email/${token}`;
+
+    const html = `
+      <h1>Bienvenido a nuestra plataforma</h1>
+      <p>Hola, comprueba tu cuenta en REPORTEC</p>
+      <p>Por favor, haz clic en el siguiente enlace para validar tu email:</p>
+      
+      <a href="${link}" style="
+        display: inline-block;
+        padding: 12px 24px;
+        margin: 16px 0;
+        background-color: #007BFF;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 6px;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.3s ease; ">
+        Validar Email
+      </a>
+
+      <p>Si no has creado una cuenta, por favor ignora este mensaje.</p>
+    `;
+
+    const options = {
+      to: email,
+      subject: "Validación de Email",
+      htmlBody: html,
+    }
+
+    const isSet = await this.emailService.sendEmail(options);
+    if (!isSet)  throw CustomError.internalServer("Error al enviar el email de validación");
+    
+    return true;
+  }
+
+  public async validateEmail(token: string) {
+    if (!token) {
+      throw CustomError.badRequest("Token is required");
+    }
+
+    const payload = await Jwt.validateToken(token);
+    if (!payload) {
+      throw CustomError.unauthorized("Token inválido o expirado");
+    }
+
+    const { email } = payload as { email: string };
+    if (!email)  throw CustomError.internalServer("Email no encontrado en el token");
+
+    // Actualizar estado de email usuario
+    const user = await UserModel.findFirst({ where: { email } });
+    if (!user) throw CustomError.internalServer("Usuario no encontrado");
+    
+
+    // Actualizar estado de verificacion
+    await UserModel.update({
+      where: { id: user.id },
+      data: { email_validated: true },
+    });
+
+    return { message: "Email validado correctamente" };
   }
 }

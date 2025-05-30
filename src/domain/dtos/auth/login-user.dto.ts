@@ -10,8 +10,8 @@ export class LoginUserDto {
   static compare(object: { [key: string]: any }): [string?, LoginUserDto?] {
     const { password, email, fcm_token } = object;
 
-    console.log("object", object);
-    console.log("fcm_token", fcm_token);
+    // console.log("object", object);
+    // console.log("fcm_token", fcm_token);
 
     if (!email) return ["Email es requerido", undefined];
     if (!regularExps.email.test(email))

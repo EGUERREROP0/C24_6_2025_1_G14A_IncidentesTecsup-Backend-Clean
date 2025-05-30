@@ -21,9 +21,15 @@ export const envs = {
   CLOUDINARY_API_SECRET: env.get("CLOUDINARY_API_SECRET").required().asString(),
 
   API_OPENIA: env.get("API_OPENIA").required().asString(),
-  
+
   //CONFIG FIREBASE
   FIREBASE_CONFIG_B64: env.get("FIREBASE_CONFIG_B64").required().asString(),
 
+  //CONFIG MAILER
+  MAILER_SERVICE: env.get("MAILER_SERVICE").required().asString(),
+  MAILER_EMAIL: env.get("MAILER_EMAIL").required().asString(),
+  MAILER_SECRET_KEY: env.get("MAILER_SECRET_KEY").required().asString(),
 
+  //LocalHost
+  API_URL: env.get("API_URL").required().asString(),
 };

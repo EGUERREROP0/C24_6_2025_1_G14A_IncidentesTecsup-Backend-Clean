@@ -1,4 +1,5 @@
 import { regularExps } from "../../../config";
+import { isStrongPassword } from "../../../config/plugins/regular-exp";
 
 export class RegisterUserDto {
   constructor(
@@ -25,6 +26,7 @@ export class RegisterUserDto {
       return ["El email es invalido", undefined];
     if (!password) return ["La contraseña es requerida", undefined];
     if (password.length < 6) return ["Contraseña muy corta", undefined];
+    if (!isStrongPassword(password)) return ["Contraseña no segura", undefined];
 
     return [
       undefined,
