@@ -98,6 +98,27 @@ export class UserService {
     }
   }
 
+  // Update profile user (sin imagen)
+  async updateProfileUser(user: UserEntity) {
+    try {
+      const { id, first_name, last_name, email } = user;
+
+      const updatedUser = await UserModel.update({
+        where: { id },
+        data: { first_name, last_name, email },
+        include: { user_role: true },
+      });
+
+      return {
+        user: UserEntity.fromObject(updatedUser),
+        message: "Perfil actualizado correctamente",
+      };
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw CustomError.internalServer(`${error}`);
+    }
+  }
+
   //Convert user to admin
   async convertUserToAdmin(id: number) {
     try {

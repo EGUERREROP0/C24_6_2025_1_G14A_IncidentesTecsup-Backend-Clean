@@ -24,11 +24,18 @@ export class UserRoutes {
     );
 
     router.put(
-      "/profile",
+      "/profile-image",
       [AuthMiddleware.validateJWT],
       userController.updateProfileUserOnlyPhoto
+    )
+
+    router.put(
+      "/profile-all",
+      [AuthMiddleware.validateJWT],
+      userController.updateProfileUser
     );
 
+    
     router.get(
       "/",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],

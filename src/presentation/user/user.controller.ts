@@ -5,7 +5,6 @@ import { PaginationDto } from "../../domain";
 import { CloudinaryService } from "../../lib/claudinary.service";
 import { UserModel } from "../../data/postgres/prisma";
 
-
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -71,7 +70,29 @@ export class UserController {
       });
   };
 
-  //TODO: Update profile user Only Photo 
+  // Update user profile without image
+  updateProfileUser = async (req: Request, res: Response) => {
+    const user = req.body.user;
+    const { first_name, last_name, email } = req.body;
+
+    if (!user) return res.status(400).json({ error: "No hay usuario" });
+
+    try {
+      const updatedUser = await this.userService.updateProfileUser({
+        id: user.id,
+        first_name,
+        last_name,
+        email,
+      });
+
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error("Error al actualizar el perfil:", error);
+      return res.status(500).json({ error: "Error al actualizar el perfil" });
+    }
+  };
+
+  //TODO: Update profile user Only Photo
   updateProfileUserOnlyPhoto = async (req: Request, res: Response) => {
     const user = req.body.user;
     const { profile_picture } = req.body;
@@ -88,34 +109,22 @@ export class UserController {
     });
 
     if (!result?.secure_url) return res.status(400).json({ error: "Error" });
-    
+
     try {
       const profileUpdated = await UserModel.update({
         where: { id: user.id },
         data: {
           profile_picture: result.secure_url || profile_picture,
         },
-      })
+      });
 
-      return res.status(200).json(profileUpdated);
-      
+      return res
+        .status(200)
+        .json({ profileUpdated, message: "Perfil actualizado correctamente" });
     } catch (error) {
       console.log(error);
       return res.status(400).json({ error: "Error al subir la imagen" });
     }
-
-    // if (!user) return res.status(400).json({ error: "No hay usuario" });
-    // if (!name || !last_name || !email)
-    //   return res.status(400).json({ error: "Faltan datos" });
-
-    // this.userService
-    //   .updateProfileUser(user, { name, last_name, email })
-    //   .then((user) => {
-    //     return res.status(200).json(user);
-    //   })
-    //   .catch((error) => {
-    //     this.handleError(error, res);
-    // });
   };
 
   //!*Convert user to admin

@@ -26,9 +26,10 @@ export class IncidentController {
   createIncident = async (req: Request, res: Response) => {
     const user = req.body.user;
     const file = (req as any).files?.image;
+    const force = req.body.force === "true";
 
     this.incidentService
-      .handleCreateIncident(req.body, user, file)
+      .handleCreateIncident(req.body, user, file, force)
       // .createIncident(createIncidentDto!, user)
       .then((response) => {
         return res.status(200).json(response);

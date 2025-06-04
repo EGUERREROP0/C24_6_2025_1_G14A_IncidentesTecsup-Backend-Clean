@@ -112,7 +112,8 @@ export class IncidentService {
   async handleCreateIncident(
     body: { [key: string]: any },
     user: UserEntity,
-    file: any
+    file: any,
+    force: boolean = false
   ) {
     if (!file) return { error: "No hay una imagen proporcionada" };
 
@@ -136,47 +137,61 @@ export class IncidentService {
       throw CustomError.internalServer("Error subiendo imagen");
 
     //! Verificar duplicado con FastAPI
+
     let duplicateCheck;
-    try {
-      duplicateCheck = await axios.post(envs.API_OPENIA, {
-        description: body.description,
-        image_url: result.secure_url,
-        latitude: parseFloat(body.location.latitude),
-        longitude: parseFloat(body.location.longitude),
-      });
-    } catch (error: any) {
-      console.error("Error al conectar con FastAPI:", error.message);
-      return {
-        error: "No se pudo verificar duplicado con IA",
-      };
+
+    if (!force) {
+      try {
+        duplicateCheck = await axios.post(envs.API_OPENIA, {
+          description: body.description,
+          image_url: result.secure_url,
+          latitude: parseFloat(body.location.latitude),
+          longitude: parseFloat(body.location.longitude),
+        });
+      } catch (error: any) {
+        console.error("Error al conectar con FastAPI:", error.message);
+        return {
+          error: "No se pudo verificar duplicado con IA",
+        };
+      }
+      // try {
+      //   duplicateCheck = await axios.post(envs.API_OPENIA, {
+      //     description: body.description,
+      //     image_url: result.secure_url,
+      //     latitude: parseFloat(body.location.latitude),
+      //     longitude: parseFloat(body.location.longitude),
+      //   });
+      // } catch (error: any) {
+      //   console.error("Error al conectar con FastAPI:", error.message);
+      //   return {
+      //     error: "No se pudo verificar duplicado con IA",
+      //   };
+      // }
+
+      // Si es duplicado, responder al frontend
+      if (duplicateCheck.data.duplicado) {
+        let score = duplicateCheck.data.score * 100;
+        let whatTime = duplicateCheck.data.incidente_sugerido.hace_tiempo;
+
+        console.log({
+          duplicado: true,
+          message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
+            score
+          )}%`,
+          sugerido: duplicateCheck.data.incidente_sugerido,
+          score: duplicateCheck.data.score,
+        });
+        return {
+          duplicado: true,
+          message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
+            score
+          )}%`,
+          sugerido: duplicateCheck.data.incidente_sugerido,
+          score: duplicateCheck.data.score,
+        };
+      }
+      //Codigo nuevo 139 - 169
     }
-
-    // Si es duplicado, responder al frontend
-    if (duplicateCheck.data.duplicado) {
-      let score = duplicateCheck.data.score * 100;
-      let whatTime = duplicateCheck.data.incidente_sugerido.hace_tiempo;
-
-      console.log({
-        duplicado: true,
-        message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
-          score
-        )}%`,
-        sugerido: duplicateCheck.data.incidente_sugerido,
-        score: duplicateCheck.data.score,
-      });
-      return {
-        duplicado: true,
-        message: `Este incidente es muy similar a uno ya reportado ${whatTime}, probabilidad: ${Math.round(
-          score
-        )}%`,
-        sugerido: duplicateCheck.data.incidente_sugerido,
-        score: duplicateCheck.data.score,
-      };
-
-     
-    }
-    //Codigo nuevo 139 - 169
-
     // Validar DTO
     const [error, createIncidentDto] = CreateincidentDto.create({
       ...body,
