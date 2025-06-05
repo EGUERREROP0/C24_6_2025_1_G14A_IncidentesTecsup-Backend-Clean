@@ -25,6 +25,9 @@ export class AuthRoutes {
     router.post("/login", authController.loginUser);
     router.post("/register", authController.registerUser);
     router.post("/register-admin", authController.registerAdmin);
+    router.post("/forgot-password", authController.forgotPassword);
+    router.get("/forgot-password/:token", authController.checkPassword);
+    router.post("/forgot-password/:token", authController.newPassword);
 
     //Validate token with Email
     router.get("/validate-email/:token", authController.ValidateEmail);

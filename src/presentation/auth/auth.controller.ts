@@ -56,36 +56,55 @@ export class AuthController {
 
   //TODO implementar
   ValidateEmail = async (req: Request, res: Response) => {
-    const {token} = req.params;
+    const { token } = req.params;
     if (!token) {
       return res.status(400).json({ error: "Token is required" });
     }
 
-
     this.authService
       .validateEmail(token)
-      .then(() => res.json("El Email ha sido validado correctamente"))
+      .then((resp) => res.json(resp))
       .catch((error) => this.handleError(error, res));
+  };
 
+  forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
 
+    this.authService
+      .forgotPassword(email)
+      .then((resp) => res.json(resp))
+      .catch((error) => this.handleError(error, res));
+  };
+
+  checkPassword = async (req: Request, res: Response) => {
+    const { token } = req.params;
+    if (!token) {
+      return res.status(400).json({ error: "Token is required" });
+    }
+
+    this.authService
+      .checkPassword(token)
+      .then((user) => res.json(user))
+      .catch((error) => this.handleError(error, res));
+  };
+
+  newPassword = async (req: Request, res: Response) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: "Token is required" });
+    }
+    if (!password) {
+      return res.status(400).json({ error: "Password is required" });
+    }
+
+    this.authService
+      .newPassword(token, password)
+      .then((resp) => res.json(resp))
+      .catch((error) => this.handleError(error, res));
   };
 }
-
-//       const { password, ...userEntity } = UserEntity.fromObject(user);
-
-//       const token = await Jwt.generateToken({
-//         id: user.id,
-//         role_id: user.role_id,
-//       });
-//       if (!token) throw CustomError.internalServer("Error el el servidor");
-//       console.log({
-//         user: userEntity,
-//         token: token,
-//         role: userEntity.user_role,
-//       });
-
-//       return { user: userEntity, token: token };
-//     } catch (error) {
-//       throw CustomError.internalServer(`${error}`);
-//     }
-//   }

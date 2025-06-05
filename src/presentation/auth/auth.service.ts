@@ -7,7 +7,7 @@ import { EmailService } from "../../lib/email.service";
 import { env } from "process";
 
 export class AuthService {
-  constructor(private readonly emailService:EmailService) {}
+  constructor(private readonly emailService: EmailService) {}
 
   async registerUser(registerUserDto: RegisterUserDto) {
     const { email } = registerUserDto;
@@ -32,7 +32,7 @@ export class AuthService {
 
       // console.log({ user });
       //?Email confirmado
-      this.sendEmailValidationLink(user.email)
+      this.sendEmailValidationLink(user.email);
 
       //JWT --> Mantener autenticazion
 
@@ -50,7 +50,11 @@ export class AuthService {
         role: userEntity.user_role,
       });
 
-      return { user: userEntity, token: token };
+      return {
+        user: userEntity,
+        token: token,
+        message: "Registro exitoso. Revisa tu correo para validar tu cuenta.",
+      };
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -101,7 +105,7 @@ export class AuthService {
         role_id: newAdmin.role_id,
       });
       if (!token) throw CustomError.internalServer("Error el el servidor");
-      
+
       return { user: userEntity, token: token };
     } catch (error) {
       console.log(error);
@@ -157,12 +161,12 @@ export class AuthService {
     }
   }
 
-
-  private sendEmailValidationLink= async(email: string) =>{
+  private sendEmailValidationLink = async (email: string) => {
     const token = await Jwt.generateToken({ email, duration: "1h" });
 
     if (!token) throw CustomError.internalServer("Error al generar el token");
-    const link = `${envs.API_URL}/auth/validate-email/${token}`;
+    // const link = `${envs.API_URL}/auth/validate-email/${token}`;
+    const link = `${envs.API_URL_FRONTEND}/confirmar/${token}`;
 
     const html = `
       <h1>Bienvenido a nuestra plataforma</h1>
@@ -183,20 +187,25 @@ export class AuthService {
         Validar Email
       </a>
 
+       
+
       <p>Si no has creado una cuenta, por favor ignora este mensaje.</p>
     `;
-
+    // <a href="${link1}">Confirmar</a>;
     const options = {
       to: email,
       subject: "Validación de Email",
       htmlBody: html,
-    }
+    };
 
     const isSet = await this.emailService.sendEmail(options);
-    if (!isSet)  throw CustomError.internalServer("Error al enviar el email de validación");
-    
+    if (!isSet)
+      throw CustomError.internalServer(
+        "Error al enviar el email de validación"
+      );
+
     return true;
-  }
+  };
 
   public async validateEmail(token: string) {
     if (!token) {
@@ -209,19 +218,135 @@ export class AuthService {
     }
 
     const { email } = payload as { email: string };
-    if (!email)  throw CustomError.internalServer("Email no encontrado en el token");
+    if (!email)
+      throw CustomError.internalServer("Email no encontrado en el token");
 
-    // Actualizar estado de email usuario
+    try {
+      // Actualizar estado de email usuario
+      const user = await UserModel.findFirst({ where: { email } });
+      if (!user) throw CustomError.internalServer("Usuario no encontrado");
+
+      // Actualizar estado de verificacion
+      await UserModel.update({
+        where: { id: user.id },
+        data: { email_validated: true },
+      });
+
+      return { message: "Email validado correctamente" };
+    } catch (error) {
+      throw CustomError.internalServer("Error al validar el email");
+    }
+  }
+
+  forgotPassword = async (email: string) => {
+    if (!email) {
+      throw CustomError.badRequest("Email is required");
+    }
+
     const user = await UserModel.findFirst({ where: { email } });
-    if (!user) throw CustomError.internalServer("Usuario no encontrado");
-    
+    if (!user) {
+      throw CustomError.badRequest("El email no existe");
+    }
 
-    // Actualizar estado de verificacion
+    const token = await Jwt.generateToken({ email, duration: "1h" });
+    if (!token) {
+      throw CustomError.internalServer("Error al generar el token");
+    }
+
+    console.log("Token generado:", token);
+
+    const link = `${envs.API_URL_FRONTEND}/forgot-password/${token}`;
+
+    const html = `
+      <h1>Recuperación de Contraseña</h1>
+      <p>Hola, hemos recibido una solicitud para restablecer tu contraseña.</p>
+      <p>Por favor, haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+
+      <a href="${link}" style="
+        display: inline-block;
+        padding: 12px 24px;
+        margin: 16px 0;
+        background-color: #007BFF;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 6px;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.3s ease; ">
+        Restablecer Contraseña
+      </a>
+
+      <p>Si no has solicitado este cambio, por favor ignora este mensaje.</p>
+    `;
+
+    const options = {
+      to: email,
+      subject: "Recuperación de Contraseña",
+      htmlBody: html,
+    };
+
+    const isSet = await this.emailService.sendEmail(options);
+    if (!isSet) {
+      throw CustomError.internalServer(
+        "Error al enviar el email de recuperación"
+      );
+    }
+
+    return {
+      message: "Se ha enviado un enlace de recuperación a tu correo",
+      token,
+    };
+  };
+
+  checkPassword = async (token: string) => {
+    if (!token) {
+      throw CustomError.badRequest("Token is required");
+    }
+
+    const payload = await Jwt.validateToken(token);
+    if (!payload) {
+      throw CustomError.unauthorized("Token inválido o expirado");
+    }
+
+    const { email } = payload as { email: string };
+    if (!email) {
+      throw CustomError.internalServer("Email no encontrado en el token");
+    }
+
+    try {
+      const user = await UserModel.findFirst({ where: { email } });
+      if (!user) {
+        throw CustomError.internalServer("Usuario no encontrado");
+      }
+
+      return user;
+    } catch (error) {
+      throw CustomError.internalServer("Error al verificar el token");
+    }
+  };
+
+  newPassword = async (token: string, password: string) => {
+    const payload = await Jwt.validateToken(token);
+    if (!payload) {
+      throw CustomError.unauthorized("Token inválido o expirado");
+    }
+
+    const { email } = payload as { email: string };
+    if (!email) {
+      throw CustomError.internalServer("Email no encontrado en el token");
+    }
+
+    const user = await UserModel.findFirst({ where: { email } });
+    if (!user) {
+      throw CustomError.internalServer("Usuario no encontrado");
+    }
+
+    // Actualizar contraseña
     await UserModel.update({
       where: { id: user.id },
-      data: { email_validated: true },
+      data: { password: Bcrypt.hash(password) },
     });
 
-    return { message: "Email validado correctamente" };
-  }
+    return { message: "Contraseña actualizada correctamente" };
+  };
 }

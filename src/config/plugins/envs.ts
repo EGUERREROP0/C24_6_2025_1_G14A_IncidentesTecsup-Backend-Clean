@@ -32,4 +32,5 @@ export const envs = {
 
   //LocalHost
   API_URL: env.get("API_URL").required().asString(),
+  API_URL_FRONTEND: env.get("API_URL_FRONTEND").required().asString(),
 };
