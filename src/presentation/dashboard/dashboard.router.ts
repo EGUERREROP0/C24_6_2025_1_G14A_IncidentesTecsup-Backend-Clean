@@ -17,11 +17,26 @@ export class DashboardRouter {
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       dashboardController.getTotalIncidents
     );
+    
     router.get(
       "/incdents-by-priority",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       dashboardController.countIncidentsByPriority
     );
+
+    router.get(
+      "/admin/resumen",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
+      dashboardController.getAdminIncidentResumen
+    );
+
+    router.get(
+      "/admin/incidents-by-priority",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
+      dashboardController.getAdminIncidentPriority
+    );
+    
+
     router.get(
       "/admin-incident-stats",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
@@ -35,5 +50,8 @@ export class DashboardRouter {
     );
 
     return router;
+
+    // router.get("/dashboard/resumen", dashboardResumen);
+    // router.get("/dashboard/incdents-by-priority", incidentsByPriority);
   }
 }

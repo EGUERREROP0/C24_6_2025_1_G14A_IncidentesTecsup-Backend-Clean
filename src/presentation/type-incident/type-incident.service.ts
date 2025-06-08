@@ -45,4 +45,22 @@ export class TypeIncidentService {
       throw CustomError.internalServer("Error al crear el tipo de incidente: ");
     }
   };
+
+  updateTypeIncident = async (id: number, name: string) => {
+    try {
+      const typeIncident = await IncidentTypeModel.update({
+        where: { id },
+        data: { name },
+      });
+      return {
+        typeIncident: TypeIncidentEntity.fromObject(typeIncident),
+        message: `Tipo de incidente ${typeIncident.name} actualizado`,
+      };
+    } catch (error) {
+      console.error("Error al actualizar el tipo de incidente:", error);
+      throw CustomError.internalServer(
+        "Error al actualizar el tipo de incidente: "
+      );
+    }
+  };
 }

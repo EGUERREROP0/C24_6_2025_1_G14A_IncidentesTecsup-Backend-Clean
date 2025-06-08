@@ -37,12 +37,13 @@ export class UserService {
           include: {
             user_role: true,
           },
+          // orderBy: { id: "desc" },
         }),
       ]);
 
       const allusers = users.map(({ password, ...restUser }) => restUser);
 
-      console.log(allusers);
+      // console.log(allusers);
 
       return {
         skip,

@@ -90,6 +90,12 @@ export class AuthService {
         },
       });
 
+      // console.log({ user });
+      //?Email confirmado
+      const emailSent = await this.sendEmailValidationLink(newAdmin.email);
+      console.log("¿Correo de validación enviado?:", emailSent);
+
+
       await IncidentTypeAdminModel.create({
         data: {
           admin_id: newAdmin.id,

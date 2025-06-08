@@ -141,49 +141,135 @@ export class DashboardService {
   };
 
   //! Obtener estadísticas de incidentes para administradores secundarios
+  // getAdminIncidentStats = async (userId: number) => {
+  //   try {
+  //     // Agrupa incidentes por estado solo del admin actual
+  //     const stats = await IncidentModel.groupBy({
+  //       by: ["status_id"],
+  //       where: {
+  //         assigned_admin_id: userId,
+  //       },
+  //       _count: {
+  //         id: true,
+  //       },
+  //     });
+
+  //     // Busca el admin actual
+  //     const admin = await UserModel.findUnique({
+  //       where: { id: userId },
+  //       select: {
+  //         id: true,
+  //         first_name: true,
+  //         last_name: true,
+  //       },
+  //     });
+
+  //     // Lista de todos los estados disponibles
+  //     const statuses = await IncidentStatusModel.findMany();
+
+  //     // Construir el resultado formateado
+  //     const breakdown = statuses.map((status) => {
+  //       const match = stats.find((s) => s.status_id === status.id);
+  //       return {
+  //         status: status.name,
+  //         count: match?._count.id || 0,
+  //       };
+  //     });
+
+  //     return {
+  //       admin_id: admin?.id,
+  //       name: `${admin?.first_name} ${admin?.last_name}`,
+  //       incidents_by_status: breakdown,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error al obtener estadísticas del admin:", error);
+  //     throw new Error("No se pudieron obtener las estadísticas");
+  //   }
+  // };
   getAdminIncidentStats = async (userId: number) => {
     try {
-      // Agrupa incidentes por estado solo del admin actual
-      const stats = await IncidentModel.groupBy({
+      const grouped = await IncidentModel.groupBy({
         by: ["status_id"],
-        where: {
-          assigned_admin_id: userId,
-        },
-        _count: {
-          id: true,
-        },
+        where: { assigned_admin_id: userId },
+        _count: { _all: true },
       });
 
-      // Busca el admin actual
-      const admin = await UserModel.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          first_name: true,
-          last_name: true,
-        },
+      const total = await IncidentModel.count({
+        where: { assigned_admin_id: userId },
       });
 
-      // Lista de todos los estados disponibles
-      const statuses = await IncidentStatusModel.findMany();
-
-      // Construir el resultado formateado
-      const breakdown = statuses.map((status) => {
-        const match = stats.find((s) => s.status_id === status.id);
-        return {
-          status: status.name,
-          count: match?._count.id || 0,
-        };
-      });
-
-      return {
-        admin_id: admin?.id,
-        name: `${admin?.first_name} ${admin?.last_name}`,
-        incidents_by_status: breakdown,
+      const result: Record<string, number> = {
+        totalIncidentes: total,
+        incidentByStatusPending: 0,
+        incidentByStatusIn_progress: 0,
+        incidentByStatusResolved: 0,
+        incidentByStatusClosed: 0,
+        incidentByStatusReopened: 0,
       };
+
+      grouped.forEach((item) => {
+        switch (item.status_id) {
+          case 1:
+            result.incidentByStatusPending = item._count._all;
+            break;
+          case 2:
+            result.incidentByStatusIn_progress = item._count._all;
+            break;
+          case 3:
+            result.incidentByStatusResolved = item._count._all;
+            break;
+          case 4:
+            result.incidentByStatusClosed = item._count._all;
+            break;
+          case 5:
+            result.incidentByStatusReopened = item._count._all;
+            break;
+        }
+      });
+
+      return result;
     } catch (error) {
       console.error("Error al obtener estadísticas del admin:", error);
-      throw new Error("No se pudieron obtener las estadísticas");
+      throw CustomError.internalServer(
+        "No se pudieron obtener las estadísticas del admin"
+      );
+    }
+  };
+
+  getAdminIncidentsByPriority = async (userId: number) => {
+    try {
+      const grouped = await IncidentModel.groupBy({
+        by: ["priority"],
+        where: { assigned_admin_id: userId },
+        _count: { _all: true },
+      });
+
+      const result: Record<string, number> = {
+        incidentsByPriorityHigh: 0,
+        incidentsByPriorityMedium: 0,
+        incidentsByPriorityLow: 0,
+      };
+
+      grouped.forEach((item) => {
+        switch (item.priority) {
+          case "Alta":
+            result.incidentsByPriorityHigh = item._count._all;
+            break;
+          case "Media":
+            result.incidentsByPriorityMedium = item._count._all;
+            break;
+          case "Baja":
+            result.incidentsByPriorityLow = item._count._all;
+            break;
+        }
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error al obtener incidentes por prioridad:", error);
+      throw CustomError.internalServer(
+        "No se pudo obtener la prioridad del admin"
+      );
     }
   };
 

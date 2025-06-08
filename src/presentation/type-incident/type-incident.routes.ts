@@ -14,12 +14,19 @@ export class typeIncidentRoutes {
 
     router.post(
       "/",
-      // [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      //  [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       typeIncidentController.createTypeIncident
     );
+
+    router.put(
+      "/:id",
+      // [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      typeIncidentController.updateTypeIncident
+    );
+
     router.get(
       "/",
-      [AuthMiddleware.validateJWT],
+      // [AuthMiddleware.validateJWT],
       typeIncidentController.getAllTypeIncidents
     );
     router.delete(

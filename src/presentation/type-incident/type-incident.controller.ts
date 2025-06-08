@@ -16,22 +16,21 @@ export class TypeIncidentController {
     return res.status(500).json({ error: "Internal server Error" });
   };
 
-  createTypeIncident = (req:Request, res:Response)=>{
+  createTypeIncident = (req: Request, res: Response) => {
     const { name } = req.body;
     if (!name) {
       return res.status(400).json({ error: "El nombre es requerido" });
     }
 
-    const [error, typeIncidentDto] =  TypeIncidentDto.create(name);
-    
-    if(error) return res.status(400).json({ error });
-    
+    const [error, typeIncidentDto] = TypeIncidentDto.create(name);
+
+    if (error) return res.status(400).json({ error });
 
     this.typeIncidentService
-      .createTypeIncident(name)
+      .createTypeIncident(typeIncidentDto!.name)
       .then((typeIncident) => res.status(201).json(typeIncident))
       .catch((error) => this.handleError(error, res));
-  }
+  };
 
   getAllTypeIncidents = async (req: Request, res: Response) => {
     this.typeIncidentService
@@ -57,4 +56,26 @@ export class TypeIncidentController {
       )
       .catch((error) => this.handleError(error, res));
   };
+
+  updateTypeIncident = (req: Request, res: Response) => {
+    const id = +req.params.id;
+    const { name } = req.body;
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "El ID no es un Numero" });
+    }
+
+    if (!name) {
+      return res.status(400).json({ error: "El nombre es requerido" });
+    }
+
+    const [error, typeIncidentDto] = TypeIncidentDto.create(name);
+
+    if (error) return res.status(400).json({ error });
+
+    this.typeIncidentService
+      .updateTypeIncident(id, typeIncidentDto!.name)
+      .then((typeIncident) => res.status(200).json(typeIncident))
+      .catch((error) => this.handleError(error, res));
+  }
 }
