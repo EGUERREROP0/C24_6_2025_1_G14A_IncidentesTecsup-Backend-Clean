@@ -532,4 +532,51 @@ export class IncidentService {
       );
     }
   };
+
+  //! Tiempo promedio de resolucin de incidentes
+  async getAverageResolutionTime() {
+    try {
+      const incidents = await IncidentModel.findMany({
+        where: {
+          NOT: [{ report_date: null }, { close_date: null }],
+        },
+        select: {
+          report_date: true,
+          close_date: true,
+        },
+      });
+
+      if (!incidents || incidents.length === 0) {
+        return {
+          average: null,
+          message: "No hay incidentes cerrados para calcular tiempo promedio.",
+        };
+      }
+
+      const totalMilliseconds = incidents.reduce((sum, incident) => {
+        const diff =
+          new Date(incident.close_date!).getTime() -
+          new Date(incident.report_date!).getTime();
+        return sum + diff;
+      }, 0);
+
+      const averageMilliseconds = totalMilliseconds / incidents.length;
+      const averageMinutes = Math.floor(averageMilliseconds / (1000 * 60));
+
+      const hours = Math.floor(averageMinutes / 60);
+      const minutes = averageMinutes % 60;
+
+      
+
+      return {
+        average: `${hours}h ${minutes}min`,
+        totalIncidents: incidents.length,
+      };
+    } catch (error) {
+      console.error("Error al calcular el tiempo promedio:", error);
+      throw CustomError.internalServer(
+        "Error al calcular tiempo promedio de resolución"
+      );
+    }
+  }
 }

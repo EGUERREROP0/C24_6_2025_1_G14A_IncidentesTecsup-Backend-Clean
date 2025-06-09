@@ -86,7 +86,7 @@ export class IncidentController {
 
     this.incidentService
       .getIncidentById(id)
-      .then((detail) => res.status(200).json( detail ))
+      .then((detail) => res.status(200).json(detail))
       .catch((error) => {
         this.handleError(error, res);
       });
@@ -148,7 +148,6 @@ export class IncidentController {
 
     if (error) return res.status(400).json({ error });
 
-
     this.incidentService
       .updateIncidentStatus(
         id,
@@ -170,5 +169,13 @@ export class IncidentController {
     //   .getIncidentsByStatus(status_id)
     //   .then((response) => res.status(200).json(response))
     //   .catch((error) => this.handleError(error, res));
+  };
+
+  //Tiempo promedio de resolución de incidentes
+  getAverageResolutionTime = async (req: Request, res: Response) => {
+    this.incidentService
+      .getAverageResolutionTime()
+      .then((result) => res.status(200).json(result))
+      .catch((error) => this.handleError(error, res));
   };
 }

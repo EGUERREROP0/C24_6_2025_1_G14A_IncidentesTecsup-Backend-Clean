@@ -35,6 +35,12 @@ export class IncidentRoutes {
       [AuthMiddleware.validateJWT],
       incidenteController.getIncidentsByUser
     );
+    router.get(
+      "/average-resolution-time",
+      [AuthMiddleware.validateJWT],
+      incidenteController.getAverageResolutionTime
+    );
+    
 
     //TODO: Implementar
     router.get("/:id", incidenteController.getIncidentById);
@@ -51,7 +57,7 @@ export class IncidentRoutes {
       incidenteController.deleteIncident
     );
 
-    router.get("/location/:id");
+    // router.get("/location/:id");
 
     return router;
   }

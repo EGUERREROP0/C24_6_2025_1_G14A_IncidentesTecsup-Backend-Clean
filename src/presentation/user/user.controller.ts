@@ -161,4 +161,19 @@ export class UserController {
         this.handleError(error, res);
       });
   };
+
+  //* Get user admins
+  getAdmins = (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const [error, paginationDto] = PaginationDto.create(+page, +limit);
+
+    if (error) return res.status(400).json({ error });
+    if (search && typeof search !== "string")
+      return res.status(400).json({ error: "El search debe ser un string" });
+
+    this.userService
+      .getAdmins(paginationDto!, search as string)
+      .then((users) => res.status(200).json(users))
+      .catch((error) => this.handleError(error, res));
+  };
 }

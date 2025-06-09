@@ -41,24 +41,36 @@ export class UserRoutes {
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       userController.getAllUsers
     );
+
     router.get(
-      "/:id",
+      "/admins-secondary",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
-      userController.getUserById
+      userController.getAdmins
     );
 
+    
+    
     //Convert user to admin
     router.put("/convert_to_admin/:id", [
       AuthMiddleware.validateJWT,
       AuthMiddleware.verifyIsSuperAdmin,
       userController.convertUserToAdmin,
     ]);
+    
+    router.get(
+      "/:id",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      userController.getUserById
+    );
 
     router.delete(
       "/:id",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
       userController.deleteUserById
     );
+
+    
+    
     return router;
   }
 }
