@@ -50,6 +50,12 @@ export class IncidentRoutes {
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
       incidenteController.updateIncidentStatus
     );
+    router.put(
+      "/:id/priority",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
+      incidenteController.updateIncidentPriority
+    );
+    
 
     router.delete(
       "/:id",

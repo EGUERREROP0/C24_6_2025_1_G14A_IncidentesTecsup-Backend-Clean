@@ -71,6 +71,7 @@ model incident_status {
 model incident_type {
   id                  Int                   @id @default(autoincrement())
   name                String                @db.VarChar(100)
+  is_active           Boolean?              @default(true)
   incident            incident[]
   incident_type_admin incident_type_admin[]
 }

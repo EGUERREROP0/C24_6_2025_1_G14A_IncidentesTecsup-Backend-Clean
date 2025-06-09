@@ -7,7 +7,9 @@ export class TypeIncidentService {
 
   async getAllTypeIncidents() {
     try {
-      const types = await IncidentTypeModel.findMany();
+      const types = await IncidentTypeModel.findMany({
+        where: { is_active: true },
+      });
       return types.map((type) => TypeIncidentEntity.fromObject(type));
     } catch (error) {
       console.error("Error al obtener los tipos de incidentes:", error);
@@ -19,8 +21,9 @@ export class TypeIncidentService {
 
   deleteTypeIncident = async (id: number) => {
     try {
-      const typeIncident = await IncidentTypeModel.delete({
+      const typeIncident = await IncidentTypeModel.update({
         where: { id },
+        data: { is_active: false },
       });
       return typeIncident;
     } catch (error) {

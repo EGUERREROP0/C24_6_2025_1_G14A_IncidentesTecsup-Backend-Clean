@@ -566,8 +566,6 @@ export class IncidentService {
       const hours = Math.floor(averageMinutes / 60);
       const minutes = averageMinutes % 60;
 
-      
-
       return {
         average: `${hours}h ${minutes}min`,
         totalIncidents: incidents.length,
@@ -576,6 +574,89 @@ export class IncidentService {
       console.error("Error al calcular el tiempo promedio:", error);
       throw CustomError.internalServer(
         "Error al calcular tiempo promedio de resolución"
+      );
+    }
+  }
+
+  //! Cambiar prioridad
+  async updateIncidentPriority(
+    id: number,
+    newPriority: "Alta" | "Media" | "Baja",
+    user: UserEntity
+  ) {
+    try {
+      const incident = await IncidentModel.findUnique({
+        where: { id },
+      });
+
+      if (!incident)
+        throw CustomError.notFound(`Incidente con id ${id} no encontrado`);
+
+      const updatedIncident = await IncidentModel.update({
+        where: { id },
+        data: {
+          priority: newPriority,
+        },
+        include: {
+          incident_status: true,
+          incident_type: true,
+          location: true,
+        },
+      });
+
+      // Historial
+      await IncidentHistoryModel.create({
+        data: {
+          incident_id: id,
+          previous_status: `Prioridad: ${incident.priority}`,
+          new_status: `Prioridad: ${updatedIncident.priority}`,
+          comment: `La prioridad fue cambiada por ${user.first_name} ${user.last_name}`,
+          modified_by: user.id,
+        },
+      });
+
+      // Notificar al usuario que reportó el incidente
+      if (!incident.user_id) {
+        throw CustomError.internalServer(
+          "El incidente no tiene usuario asignado"
+        );
+      }
+
+      const reportUser = await UserModel.findUnique({
+        where: { id: incident.user_id },
+      });
+
+      if (reportUser?.fcm_token) {
+        // Notificación push
+        await this.notificationService.sendPushNotification({
+          token: reportUser.fcm_token,
+          title: `👋Hola ${reportUser.first_name}, La prioridad de tu incidente ha cambiado`,
+          body: `Nueva prioridad: ${newPriority}`,
+          imageUrl: incident.image_url ?? undefined,
+          data: {
+            incidentId: String(incident.id),
+          },
+        });
+
+        // Registro en tabla notification
+        await NotificationModel.create({
+          data: {
+            sender_id: user.id,
+            receiver_id: reportUser.id,
+            message: `La prioridad de tu incidente fue cambiada a '${newPriority}'.`,
+            incident_id: updatedIncident.id,
+          },
+        });
+      }
+
+      return {
+        message: "Prioridad del incidente actualizada correctamente",
+        updatedIncident,
+      };
+    } catch (error) {
+      console.log(error);
+      throw CustomError.internalServer(
+        "Error actualizando prioridad del incidente"
       );
     }
   }

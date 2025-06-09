@@ -178,4 +178,21 @@ export class IncidentController {
       .then((result) => res.status(200).json(result))
       .catch((error) => this.handleError(error, res));
   };
+
+  //! Update incident by priority
+  updateIncidentPriority = (req: Request, res: Response) => {
+    const id = +req.params.id;
+    const { priority } = req.body;
+
+    const allowedPriorities = ["Alta", "Media", "Baja"];
+
+    if (isNaN(id)) return res.status(400).json({ error: "El id no es válido" });
+    if (!allowedPriorities.includes(priority))
+      return res.status(400).json({ error: "Prioridad inválida" });
+
+    this.incidentService
+      .updateIncidentPriority(id, priority as any, req.body.user)
+      .then((response) => res.status(200).json(response))
+      .catch((error) => this.handleError(error, res));
+  };
 }
