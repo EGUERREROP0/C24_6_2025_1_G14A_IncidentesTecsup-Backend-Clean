@@ -1,4 +1,4 @@
-import { IncidentTypeModel } from "../../data/postgres/prisma";
+import { IncidentTypeAdminModel, IncidentTypeModel } from "../../data/postgres/prisma";
 import { TypeIncidentEntity } from "../../domain/entities/type-incident.entity";
 import { CustomError } from "../../domain/error";
 
@@ -19,20 +19,20 @@ export class TypeIncidentService {
     }
   }
 
-  deleteTypeIncident = async (id: number) => {
-    try {
-      const typeIncident = await IncidentTypeModel.update({
-        where: { id },
-        data: { is_active: false },
-      });
-      return typeIncident;
-    } catch (error) {
-      console.error("Error al eliminar el tipo de incidente:", error);
-      throw CustomError.internalServer(
-        "Error al eliminar el tipo de incidente: "
-      );
-    }
-  };
+  // deleteTypeIncident = async (id: number) => {
+  //   try {
+  //     const typeIncident = await IncidentTypeModel.update({
+  //       where: { id },
+  //       data: { is_active: false },
+  //     });
+  //     return typeIncident;
+  //   } catch (error) {
+  //     console.error("Error al eliminar el tipo de incidente:", error);
+  //     throw CustomError.internalServer(
+  //       "Error al eliminar el tipo de incidente: "
+  //     );
+  //   }
+  // };
 
   createTypeIncident = async (name: string) => {
     try {
@@ -63,6 +63,38 @@ export class TypeIncidentService {
       console.error("Error al actualizar el tipo de incidente:", error);
       throw CustomError.internalServer(
         "Error al actualizar el tipo de incidente: "
+      );
+    }
+  };
+
+  deleteTypeIncident = async (id: number) => {
+    try {
+      // Verificar si el tipo de incidente está asignado a algún admin
+      const assignedAdmins = await IncidentTypeAdminModel.findFirst({
+        where: {
+          incident_type_id: id,
+        },
+      });
+
+      if (assignedAdmins) {
+        throw CustomError.badRequest(
+          "No se puede eliminar el tipo de incidente porque está asignado a algun administrador."
+        );
+      }
+      const typeIncident = await IncidentTypeModel.update({
+        where: { id },
+        data: { is_active: false },
+      });
+
+      return typeIncident;
+    } catch (error) {
+      console.error("Error al eliminar el tipo de incidente:", error);
+      if (error instanceof CustomError) {
+        throw error;
+      }
+
+      throw CustomError.internalServer(
+        "Error al eliminar el tipo de incidente"
       );
     }
   };

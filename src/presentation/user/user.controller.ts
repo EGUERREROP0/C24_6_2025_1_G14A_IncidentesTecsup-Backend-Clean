@@ -4,6 +4,7 @@ import { CustomError } from "../../domain/error";
 import { PaginationDto } from "../../domain";
 import { CloudinaryService } from "../../lib/claudinary.service";
 import { UserModel } from "../../data/postgres/prisma";
+import { UpdateAdminDto } from "../../domain/dtos/admin/update-admin.dto";
 
 export class UserController {
   constructor(
@@ -175,5 +176,19 @@ export class UserController {
       .getAdmins(paginationDto!, search as string)
       .then((users) => res.status(200).json(users))
       .catch((error) => this.handleError(error, res));
+  };
+
+  updateAdmin = async (req: Request, res: Response) => {
+    const id = +req.params.id;
+    console.log(id);
+    console.log(req.body);
+    const [error, dto] = UpdateAdminDto.create({ ...req.body, id });
+
+    if (error) return res.status(400).json({ error });
+
+    this.userService
+      .updateAdmin(dto!)
+      .then((user) => res.status(200).json(user))
+      .catch((err) => this.handleError(err, res));
   };
 }

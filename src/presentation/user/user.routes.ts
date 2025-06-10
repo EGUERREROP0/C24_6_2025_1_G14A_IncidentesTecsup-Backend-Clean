@@ -63,6 +63,13 @@ export class UserRoutes {
       userController.getUserById
     );
 
+    router.put(
+      "/admin/:id",
+      [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      userController.updateAdmin
+    );
+    
+
     router.delete(
       "/:id",
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
