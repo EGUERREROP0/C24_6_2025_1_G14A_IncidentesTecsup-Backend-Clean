@@ -26,7 +26,9 @@ export class IncidentRoutes {
     );
     router.get(
       "/",
-      // [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin],
+      [
+        /*AuthMiddleware.validateJWT, AuthMiddleware.verifyIsSuperAdmin*/
+      ],
       incidenteController.getAllIncidents
     );
 
@@ -40,7 +42,6 @@ export class IncidentRoutes {
       [AuthMiddleware.validateJWT],
       incidenteController.getAverageResolutionTime
     );
-    
 
     //TODO: Implementar
     router.get("/:id", incidenteController.getIncidentById);
@@ -55,7 +56,6 @@ export class IncidentRoutes {
       [AuthMiddleware.validateJWT, AuthMiddleware.verifyIsAdmin],
       incidenteController.updateIncidentPriority
     );
-    
 
     router.delete(
       "/:id",

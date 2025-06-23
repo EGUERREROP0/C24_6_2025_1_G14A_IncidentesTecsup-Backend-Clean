@@ -1,5 +1,4 @@
 import { notification } from "./../../../node_modules/.prisma/client/index.d";
-import { Console } from "console";
 import { envs, FormatTime, HelperSanitizar } from "../../config";
 import {
   IncidentHistoryModel,
@@ -16,11 +15,17 @@ import { CloudinaryService } from "../../lib/claudinary.service";
 import axios from "axios";
 import { priority_enum, Prisma } from "@prisma/client";
 import { NotificationService } from "../../lib/notifications";
+import { WssService } from "../../lib/wss.service";
+import { DashboardService } from "../dashboard/dashboard.service";
 
 export class IncidentService {
   private readonly notificationService = new NotificationService();
+  public dashboardService = new DashboardService();
 
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly wssService = WssService.instance
+  ) {}
 
   async createIncident(createincidentDto: CreateincidentDto, user: UserEntity) {
     //Asignar responsable al incidente
@@ -32,6 +37,30 @@ export class IncidentService {
     if (!responsibleAdmin)
       throw CustomError.notFound("No hay admin responsable asignado");
 
+    //  Validar reportes diarios
+    const MAX_REPORTS_PER_DAY = 3;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const reportCountToday = await IncidentModel.count({
+      where: {
+        user_id: user.id,
+        report_date: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+    });
+
+    if (reportCountToday >= MAX_REPORTS_PER_DAY) {
+      throw CustomError.badRequest(
+        `Ya has alcanzado el máximo de ${MAX_REPORTS_PER_DAY} reportes para hoy.`
+      );
+    }
+
     //console.log("DTO", createincidentDto.location);
     try {
       const location = await LocationModel.create({
@@ -42,7 +71,7 @@ export class IncidentService {
         },
       });
 
-      console.log("LOIONCAT", location);
+      // console.log("LOIONCAT", location);
 
       const incident = await IncidentModel.create({
         data: {
@@ -98,13 +127,23 @@ export class IncidentService {
         });
       }
 
+      this.wssService.emitNewIncident(incident);
+
+      const updatedStats = await this.dashboardService.getTotalIncidents();
+      this.wssService.emitDashboardUpdate(updatedStats);
+
+
       return {
         incident: IncidentEntity.fromObject(incident),
         message: "Incidente reportado con exito",
       };
     } catch (error) {
       console.log(error);
-      throw CustomError.internalServer(`'Error creating incident' `);
+      if (error instanceof CustomError) {
+        // Re-lanzar si es un error que tú mismo ya controlaste
+        throw error;
+      }
+      throw CustomError.internalServer(`Error creating incident - Back `);
     }
   }
 
@@ -137,7 +176,7 @@ export class IncidentService {
       throw CustomError.internalServer("Error subiendo imagen");
 
     //! Verificar duplicado con FastAPI
-
+    /*===========================
     let duplicateCheck;
 
     if (!force) {
@@ -191,7 +230,7 @@ export class IncidentService {
         };
       }
       //Codigo nuevo 139 - 169
-    }
+    }  ===================*/
     // Validar DTO
     const [error, createIncidentDto] = CreateincidentDto.create({
       ...body,

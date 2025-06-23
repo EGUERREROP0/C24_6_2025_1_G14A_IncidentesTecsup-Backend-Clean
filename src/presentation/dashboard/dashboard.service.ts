@@ -53,34 +53,7 @@ export class DashboardService {
       console.error(error);
       throw CustomError.internalServer("Error al contar incidentes por estado");
     }
-    // try {
-    //   const [
-    //     totalIncidentes,
-    //     incidentByStatusPending,
-    //     incidentByStatusIn_progress,
-    //     incidentByStatusResolved,
-    //     incidentByStatusClosed,
-    //     incidentByStatusReopened,
-    //   ] = await Promise.all([
-    //     IncidentModel.count(),
-    //     IncidentModel.count({ where: { status_id: 1 } }),
-    //     IncidentModel.count({ where: { status_id: 2 } }),
-    //     IncidentModel.count({ where: { status_id: 3 } }),
-    //     IncidentModel.count({ where: { status_id: 4 } }),
-    //     IncidentModel.count({ where: { status_id: 5 } }),
-    //   ]);
-
-    //   return {
-    //     totalIncidentes,
-    //     incidentByStatusPending,
-    //     incidentByStatusIn_progress,
-    //     incidentByStatusResolved,
-    //     incidentByStatusClosed,
-    //     incidentByStatusReopened,
-    //   };
-    // } catch (error) {
-    //   console.error(error);
-    // }
+   
   };
 
   countIncidentsByPriority = async () => {
@@ -115,77 +88,10 @@ export class DashboardService {
       console.error(error);
       throw CustomError.internalServer("Error al contar por prioridad");
     }
-    // try {
-    //   const [
-    //     incidentsByPriorityHigh,
-    //     incidentsByPriorityMedium,
-    //     incidentsByPriorityLow,
-    //   ] = await Promise.all([
-    //     IncidentModel.count({ where: { priority: "Alta" } }),
-    //     IncidentModel.count({ where: { priority: "Media" } }),
-    //     IncidentModel.count({ where: { priority: "Baja" } }),
-    //   ]);
-
-    //   // Devolver los resultados
-    //   return {
-    //     incidentsByPriorityLow,
-    //     incidentsByPriorityMedium,
-    //     incidentsByPriorityHigh,
-    //   };
-    // } catch (error) {
-    //   console.error(error);
-    //   throw CustomError.internalServer(
-    //     "Error al contar los incidentes por prioridad"
-    //   );
-    // }
+   
   };
 
-  //! Obtener estadísticas de incidentes para administradores secundarios
-  // getAdminIncidentStats = async (userId: number) => {
-  //   try {
-  //     // Agrupa incidentes por estado solo del admin actual
-  //     const stats = await IncidentModel.groupBy({
-  //       by: ["status_id"],
-  //       where: {
-  //         assigned_admin_id: userId,
-  //       },
-  //       _count: {
-  //         id: true,
-  //       },
-  //     });
-
-  //     // Busca el admin actual
-  //     const admin = await UserModel.findUnique({
-  //       where: { id: userId },
-  //       select: {
-  //         id: true,
-  //         first_name: true,
-  //         last_name: true,
-  //       },
-  //     });
-
-  //     // Lista de todos los estados disponibles
-  //     const statuses = await IncidentStatusModel.findMany();
-
-  //     // Construir el resultado formateado
-  //     const breakdown = statuses.map((status) => {
-  //       const match = stats.find((s) => s.status_id === status.id);
-  //       return {
-  //         status: status.name,
-  //         count: match?._count.id || 0,
-  //       };
-  //     });
-
-  //     return {
-  //       admin_id: admin?.id,
-  //       name: `${admin?.first_name} ${admin?.last_name}`,
-  //       incidents_by_status: breakdown,
-  //     };
-  //   } catch (error) {
-  //     console.error("Error al obtener estadísticas del admin:", error);
-  //     throw new Error("No se pudieron obtener las estadísticas");
-  //   }
-  // };
+ 
   getAdminIncidentStats = async (userId: number) => {
     try {
       const grouped = await IncidentModel.groupBy({
