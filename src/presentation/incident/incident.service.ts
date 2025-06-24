@@ -130,7 +130,10 @@ export class IncidentService {
       this.wssService.emitNewIncident(incident);
 
       const updatedStats = await this.dashboardService.getTotalIncidents();
-      this.wssService.emitDashboardUpdate(updatedStats);
+      // this.wssService.emitDashboardUpdate(updatedStats);
+      setTimeout(() => {
+        this.wssService.emitDashboardUpdate(updatedStats);
+      }, 100);
 
       return {
         incident: IncidentEntity.fromObject(incident),
@@ -514,7 +517,10 @@ export class IncidentService {
       }
       // Después de actualizar, envías los nuevos datos al dashboard
       const updatedStats = await this.dashboardService.getTotalIncidents();
-      this.wssService.emitDashboardUpdate(updatedStats);
+      // this.wssService.emitDashboardUpdate(updatedStats);
+      setTimeout(() => {
+        this.wssService.emitDashboardUpdate(updatedStats);
+      }, 100);
 
       return {
         message: "Estado del incidente actualizado correctamente",
