@@ -38,7 +38,7 @@ export class IncidentService {
       throw CustomError.notFound("No hay admin responsable asignado");
 
     //  Validar reportes diarios
-    const MAX_REPORTS_PER_DAY = 3;
+    const MAX_REPORTS_PER_DAY = 5;
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 

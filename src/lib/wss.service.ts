@@ -48,8 +48,9 @@ export class WssService {
       event: "dashboard-update",
       data: stats,
     });
-    
+    console.log(`🔔 Enviando update a ${this.wss.clients.size} clientes`);
     this.wss.clients.forEach((client) => {
+      console.log("Estado cliente:", client.readyState); // Espera 1 (OPEN)
       if (client.readyState === WebSocket.OPEN) {
         client.send(payload);
       }
