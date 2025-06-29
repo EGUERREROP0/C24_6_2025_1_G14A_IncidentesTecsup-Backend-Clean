@@ -15,8 +15,9 @@ import { CloudinaryService } from "../../lib/claudinary.service";
 import axios from "axios";
 import { priority_enum, Prisma } from "@prisma/client";
 import { NotificationService } from "../../lib/notifications";
-import { WssService } from "../../lib/wss.service";
+// import { WssService } from "../../lib/wss.service";
 import { DashboardService } from "../dashboard/dashboard.service";
+import { SocketIOService } from "../../lib/wss.service";
 
 export class IncidentService {
   private readonly notificationService = new NotificationService();
@@ -24,7 +25,7 @@ export class IncidentService {
 
   constructor(
     private readonly cloudinaryService: CloudinaryService,
-    private readonly wssService = WssService.instance
+    // private readonly wssService = WssService.instance
   ) {}
 
   async createIncident(createincidentDto: CreateincidentDto, user: UserEntity) {
@@ -127,12 +128,17 @@ export class IncidentService {
         });
       }
 
-      this.wssService.emitNewIncident(incident);
 
+      SocketIOService.emitNewIncident(incident);
       const updatedStats = await this.dashboardService.getTotalIncidents();
-      // this.wssService.emitDashboardUpdate(updatedStats);
       console.log("📊 Stats actualizadas:", updatedStats);
-      this.wssService.emitDashboardUpdate(updatedStats);
+      SocketIOService.emitDashboardUpdate(updatedStats);
+      // this.wssService.emitNewIncident(incident);
+
+      // const updatedStats = await this.dashboardService.getTotalIncidents();
+      // // this.wssService.emitDashboardUpdate(updatedStats);
+      // console.log("📊 Stats actualizadas:", updatedStats);
+      // this.wssService.emitDashboardUpdate(updatedStats);
 
       return {
         incident: IncidentEntity.fromObject(incident),
@@ -514,11 +520,15 @@ export class IncidentService {
           },
         });
       }
-      // Después de actualizar, envías los nuevos datos al dashboard
+
       const updatedStats = await this.dashboardService.getTotalIncidents();
-      // this.wssService.emitDashboardUpdate(updatedStats);
       console.log("📊 Stats actualizadas:", updatedStats);
-      this.wssService.emitDashboardUpdate(updatedStats);
+      SocketIOService.emitDashboardUpdate(updatedStats);
+      // // Después de actualizar, envías los nuevos datos al dashboard
+      // const updatedStats = await this.dashboardService.getTotalIncidents();
+      // // this.wssService.emitDashboardUpdate(updatedStats);
+      // console.log("📊 Stats actualizadas:", updatedStats);
+      // this.wssService.emitDashboardUpdate(updatedStats);
 
       return {
         message: "Estado del incidente actualizado correctamente",
