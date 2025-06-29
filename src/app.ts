@@ -24,9 +24,25 @@ function main() {
   const io = new SocketIOServer(httpServer, {
     path: "/socket.io",
     cors: {
-      origin: "*", // o define dominio específico en producción
+      origin: [
+        "http://localhost:5173", // Frontend local (Vite)
+        "https://reportec-app-94lyu.ondigitalocean.app",
+        "http://localhost:4000",
+        "https://c24-6-2025-1-g14-a-incidentes-tescu.vercel.app",
+        // "http://192.168.100.130:5173",
+      ],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
     },
   });
+
+  // const io = new SocketIOServer(httpServer, {
+  //   path: "/socket.io",
+  //   cors: {
+  //     origin: "*", // o define dominio específico en producción
+  //   },
+  // });
 
   //* Configura la lógica de sockets
   setupSocketHandlers(io);
