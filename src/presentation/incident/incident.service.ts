@@ -183,7 +183,7 @@ export class IncidentService {
       throw CustomError.internalServer("Error subiendo imagen");
 
     //! Verificar duplicado con FastAPI
-    /*===========================
+   
     let duplicateCheck;
 
     if (!force) {
@@ -237,7 +237,7 @@ export class IncidentService {
         };
       }
       //Codigo nuevo 139 - 169
-    }  ===================*/
+    }  
     // Validar DTO
     const [error, createIncidentDto] = CreateincidentDto.create({
       ...body,
